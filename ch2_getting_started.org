@@ -1,0 +1,74 @@
+* TODO Getting Started 
+
+#+BEGIN_SRC bash
+echo 'Hello' \
+' world' |
+wc
+#+END_SRC
+
+#+RESULTS:
+: 1       2      13
+
+#+BEGIN_SRC bash
+echo 'Hello World' | wc
+#+END_SRC
+
+#+RESULTS:
+: 1       2      12
+
+There are 5 types of command line tool: 
+
+- A binary executable
+- A shell builtin
+- An interpreted script
+- A shell function
+- An alias
+
+Here is an interpreted script in python: 
+
+We can create scripts in org mode, save them via tangle, and call them in bash farther down: 
+
+#+BEGIN_SRC python :session :tangle py_factorial.py
+def factorial(x):
+    if x == 1: 
+        return 1
+    else: 
+        return x * factorial(x-1)
+
+if __name__ == "__main__": 
+    import sys
+    x = int(sys.argv[1])
+    print("The factorial of ", x, " is ", factorial(x))
+#+END_SRC 
+
+#+RESULTS: py_factorial
+
+#+BEGIN_SRC bash :session
+python3 py_factorial.py 5
+#+END_SRC
+
+#+RESULTS:
+: The factorial of  5  is  120
+
+We can also simply write our factorial function in bash. This is an example of a shell function: 
+
+#+BEGIN_SRC bash
+fac() { (echo 1; seq $1) | paste -s -d\* | bc;}
+fac 5
+#+END_SRC
+
+#+RESULTS:
+: 120
+
+We can define our functions in .bashrc, which is a configuration file for bash, making them always available. 
+
+Aliases are like macros. If we find ourselves executing a certain command with the same parameters (or a part of it), we can define an alias for this. 
+
+#+BEGIN_SRC bash :session
+alias l='ls -1 --group-directories-first'
+alias moer=more
+#+END_SRC
+
+#+RESULTS:
+
+Now, if we type it in the command line, the shell will replace each alias it finds with its value. 

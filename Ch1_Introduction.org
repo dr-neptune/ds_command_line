@@ -1,0 +1,10 @@
+* Introduction
+
+This book provides information about topics like:
+- Obtaining data from websites, APIs, databases, and spreadsheets
+- Performing scrubbing operations on text, CSV, HTML/XML, and JSON files
+- Exploring data, computing descriptive statistics, and creating visualizations
+- managing a data science workflow
+- creating reusable command line tools from one liners and existing python or R code
+- parallelizing and distributing data intensive pipelines
+- modeling data with dimensionality reduction, clustering, regression, and classification algorithms 
