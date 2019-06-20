@@ -72,3 +72,174 @@ alias moer=more
 #+RESULTS:
 
 Now, if we type it in the command line, the shell will replace each alias it finds with its value. 
+
+#+BEGIN_SRC bash
+seq 5
+#+END_SRC
+
+#+RESULTS:
+| 1 |
+| 2 |
+| 3 |
+| 4 |
+| 5 |
+
+#+BEGIN_SRC bash
+seq 30 | grep 3
+#+END_SRC
+
+#+RESULTS:
+|  3 |
+| 13 |
+| 23 |
+| 30 |
+
+#+BEGIN_SRC bash
+seq 100 | grep 3 | wc -l
+#+END_SRC
+
+The option `-l` specifies that `wc` should only output the number of lines that are passed into it. By default it also returns the number of characters and words.
+
+#+RESULTS:
+: 19
+
+*** Redirecting Input and Output 
+
+By default the output of the last command line tool in the pipeline is
+outputted to the terminal. We can also save this output to a file. This is called output redirection, and it works as follows:
+
+#+BEGIN_SRC bash :dir ~/Desktop/log/ds_cmd/
+seq 10 > ten-numbers
+#+END_SRC
+
+#+RESULTS:
+
+Here we save the output to a file named ten-numbers in the given directory. 
+
+We can also append the output to a file with >> 
+
+#+BEGIN_SRC bash
+echo -n "Hello" > hello-world
+echo " World!" >> hello-world
+#+END_SRC
+
+#+RESULTS:
+
+The tool echo just outputs the value we specify, and the -n specifies that echo should not output a trailing newline. 
+
+Saving the output to a file is useful if we need to store intermediate results, for example if we need to continue an analysis after a break. 
+
+We can use cat, which reads a file and prints it.
+
+#+BEGIN_SRC bash
+cat hello-world | wc -w
+#+END_SRC
+
+#+RESULTS:
+: 2
+
+alternatively, we could have done that this way
+
+#+BEGIN_SRC bash
+< hello-world wc -w
+#+END_SRC
+
+#+RESULTS:
+: 2
+
+This way we are directly padding the file to the standard input of wc without running an additional process. If the cmd line tool also allows files to be specified as command line arguments, we can also do the following parameterization:
+
+#+BEGIN_SRC bash
+wc -w hello-world
+#+END_SRC
+
+#+RESULTS:
+: 2 hello-world
+
+*** Working with Files
+
+- move files: mv 
+- remove files: rm
+- remove files recursively: rm -r
+- copy files: cp
+- make directory: mkdir
+
+all of the above commands also accept the -v option, which stands for verbose, so that they output what is going on. All but the mkdir accept the -i option, which stands for interactive, and causes the tools to ask you for confirmation.
+
+*** Help
+
+We can always check the man pages for most of the command line tools 
+
+#+BEGIN_SRC bash :results verbatim
+man cat | head -n 20
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+CAT(1)                           User Commands                          CAT(1)
+
+NAME
+       cat - concatenate files and print on the standard output
+
+SYNOPSIS
+       cat [OPTION]... [FILE]...
+
+DESCRIPTION
+       Concatenate FILE(s) to standard output.
+
+       With no FILE, or when FILE is -, read standard input.
+
+       -A, --show-all
+              equivalent to -vET
+
+       -b, --number-nonblank
+              number nonempty output lines, overrides -n
+
+       -e     equivalent to -vE
+#+end_example
+
+Not every command line tool has a man page. For shell builtins, we need to use the help command line tool
+
+#+BEGIN_SRC bash :results verbatim
+help cd | head -n 20
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+cd: cd [-L|[-P [-e]] [-@]] [dir]
+    Change the shell working directory.
+    
+    Change the current directory to DIR.  The default DIR is the value of the
+    HOME shell variable.
+    
+    The variable CDPATH defines the search path for the directory containing
+    DIR.  Alternative directory names in CDPATH are separated by a colon (:).
+    A null directory name is the same as the current directory.  If DIR begins
+    with a slash (/), then CDPATH is not used.
+    
+    If the directory is not found, and the shell option `cdable_vars' is set,
+    the word is assumed to be  a variable name.  If that variable has a value,
+    its value is used for DIR.
+    
+    Options:
+      -L	force symbolic links to be followed: resolve symbolic
+    		links in DIR after processing instances of `..'
+      -P	use the physical directory structure without following
+    		symbolic links: resolve symbolic links in DIR before
+#+end_example
+
+Newer tools can also be used from the command line, and if they do not have man pages then our best bet is the --help option
+
+#+BEGIN_SRC bash
+jq --help
+#+END_SRC
+
+#+RESULTS:
+
+For more keyboard shortcuts: 
+
+[[https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/][Keyboard Shortcuts]]
+
+and in book form:
+
+Peek, Jerry, Shelley Powers, Tim O’Reilly, and Mike Loukides. 2002. Unix Power Tools. 3rd Ed. O’Reilly Media.
