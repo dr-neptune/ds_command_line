@@ -1,0 +1,146 @@
+* Obtaining Data
+
+Data can be obtained in several ways - 
+
+- Downloading it from a server
+- Querying a database
+- Connecting to a web api
+- Getting a compressed file, such as a binary or excel file 
+
+** 3.1 | Overview
+
+In this chapter we learn how to 
+- Obtain data from the internet
+- Query databases
+- Connect to web apis
+- Decompress files
+- Convert excel spreadsheets into usable data
+
+** 3.2 | Copying Local Files 
+
+#+BEGIN_SRC bash :dir ~/Desktop/log/ds_cmd/
+mkdir data
+cp -r ~/data-science-at-the-command-line/data/* data/
+#+END_SRC
+
+#+RESULTS:
+
+** 3.3 | Decompressing Files 
+
+If the original dataset is very large or a collection of many files, the file may be a compressed archive. 
+
+Common file extensions of compressed archives and their decompression tools include
+
+- .tar.gz & tar
+- .zip & unzip
+- .rar & unrar
+
+For example, in order to extract a file named logs.tar.gz, we would use: 
+
+#+BEGIN_SRC
+cd ~/dir/folder 
+tar -xzvf /data/logs.tar.gz
+#+END_SRC
+
+In this case, the four command line arguments x z v f specify that tar should:
+
+- extract files from an archive
+- use gzip as the decompression algorithm
+- be verbose
+- use the file logs.tar.gz 
+
+Rather than remembering the different command line tools and their options, there is a handy script called unpack which will decompress many different formats. unpack looks at the extension of the file you want to decompress and calls the appropriate command line tool.
+
+#+BEGIN_SRC bash :results verbatim raw
+cat ~/bin/unpack
+#+END_SRC
+
+#+RESULTS:
+#!/usr/bin/env bash
+# unpack: Extract common file formats
+ 
+# Dependencies: unrar, unzip, p7zip-full
+
+# Author: Patrick Brisbin
+# From: http://linuxtidbits.wordpress.com/2009/08/04/week-of-bash-scripts-extract/
+
+# Display usage if no parameters given
+if [[ -z "$@" ]]; then
+	echo " ${0##*/} <archive> - extract common file formats)"
+	exit
+fi
+ 
+# Required program(s)
+req_progs=(7z unrar unzip)
+for p in ${req_progs[@]}; do
+	hash "$p" 2>&- || \
+	{ echo >&2 " Required program \"$p\" not installed."; exit 1; }
+done
+ 
+# Test if file exists
+if [ ! -f "$@" ]; then
+	echo "File "$@" doesn't exist"
+	exit
+fi
+ 
+# Extract file by using extension as reference
+case "$@" in
+	*.7z ) 7z x "$@" ;;
+	*.tar.bz2 ) tar xvjf "$@" ;;
+	*.bz2 ) bunzip2 "$@" ;;
+	*.deb ) ar vx "$@" ;;
+	*.tar.gz ) tar xvf "$@" ;;
+	*.gz ) gunzip "$@" ;;
+	*.tar ) tar xvf "$@" ;;
+	*.tbz2 ) tar xvjf "$@" ;;
+	*.tar.xz ) tar xvf "$@" ;;
+	*.tgz ) tar xvzf "$@" ;;
+	*.rar ) unrar x "$@" ;;
+	*.zip ) unzip "$@" ;;
+	*.Z ) uncompress "$@" ;;
+	* ) echo " Unsupported file format" ;;
+esac
+
+** 3.4 | Converting Microsoft Excel Spreadsheets 
+
+There is a command line tool called in2csv which is able to convert microsoft excel spreadsheets into CSV files. 
+
+We can demonstrate in2csv using a spreadsheet of the top 250 movies from IMDB. 
+
+To extract its data, we invoke in2csv as follows
+
+#+BEGIN_SRC bash :dir ~/Desktop/log/ds_cmd/
+cd data/ch03/data 
+
+in2csv imdb-250.xlsx > imdb250.csv
+#+END_SRC
+
+#+RESULTS:
+
+The format of the file is automatically determined by the extensions (.xslx in this case). If we were to pipe the data into in2csv, we would have to specify the format explicitly.
+
+Let's look at the data 
+
+#+BEGIN_SRC bash :dir ~/Desktop/log/ds_cmd/data/ch03/data
+in2csv imdb-250.xlsx | head | csvcut -c Title,Year,Rating | csvlook
+#+END_SRC
+
+#+RESULTS:
+|   |   | Title                                   |         |           | Year   |         |         | Rating |       |   |       |   |   |   |   |
+|   |   | --------------------------------------- |         |           | -----  |         |         | ------ |       |   |       |   |   |   |   |
+|   |   | Sherlock                                | Jr.     | (1924)    |        |         | 1,924   |        |       | 8 |       |   |   |   |   |
+|   |   | The                                     | Passion | of        | Joan   | of      | Arc     | (1928) |       |   | 1,928 |   |   | 8 |   |
+|   |   | His                                     | Girl    | Friday    | (1940) |         |         | 1,940  |       |   |     8 |   |   |   |   |
+|   |   | Tokyo                                   | Story   | (1953)    |        |         | 1,953   |        |       | 8 |       |   |   |   |   |
+|   |   | The                                     | Man     | Who       | Shot   | Liberty | Valance | (1962) |       |   | 1,962 |   |   | 8 |   |
+|   |   | Persona                                 | (1966)  |           |        | 1,966   |         |        |     8 |   |       |   |   |   |   |
+|   |   | Stalker                                 | (1979)  |           |        | 1,979   |         |        |     8 |   |       |   |   |   |   |
+|   |   | Fanny                                   | and     | Alexander | (1982) |         |         | 1,982  |       |   |     8 |   |   |   |   |
+|   |   | Beauty                                  | and     | the       | Beast  | (1991)  |         |        | 1,991 |   |       | 8 |   |   |   |
+
+A spreadsheet can contain multiple worksheets. By default, in2csv extracts the first worksheet. To extract a different worksheet, we need to pass the name of the worksheet to the --sheet option. 
+
+The tools in2csv, csvcut, and csvlook are a part of csvkit. 
+
+** 3.5 | Querying Relational Databases 
+

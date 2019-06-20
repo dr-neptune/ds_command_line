@@ -8,3 +8,11 @@ This book provides information about topics like:
 - creating reusable command line tools from one liners and existing python or R code
 - parallelizing and distributing data intensive pipelines
 - modeling data with dimensionality reduction, clustering, regression, and classification algorithms 
+
+There is a definition of data science put forth by Mason and Wiggins known as the OSEMN model. 
+
+1. Obtaining Data
+2. Scrubbing Data
+3. Exploring Data
+4. Modeling Data
+5. Interpreting Data
