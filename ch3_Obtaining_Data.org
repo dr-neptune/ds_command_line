@@ -287,3 +287,600 @@ curlicue -f credentials \
 #+END_SRC
 
 #+RESULTS:
+ 
+** 3.8 | Bonus | jq tutorial
+
+Github has a json api we can play with. 
+
+This gets us the last 5 repos from the jq repo
+
+#+BEGIN_SRC bash :results verbatim
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[
+  {
+    "sha": "e944fe843651b3044e5387c69b28b28f4999e9ea",
+    "node_id": "MDY6Q29tbWl0NTEwMTE0MTplOTQ0ZmU4NDM2NTFiMzA0NGU1Mzg3YzY5YjI4YjI4ZjQ5OTllOWVh",
+    "commit": {
+      "author": {
+        "name": "Ricardo Constantino",
+        "email": "wiiaboo@gmail.com",
+        "date": "2019-05-29T19:36:18Z"
+      },
+      "committer": {
+        "name": "Nico Williams",
+        "email": "nico@cryptonector.com",
+        "date": "2019-06-11T16:57:02Z"
+      },
+      "message": "Makefile.am: fix builtin.inc with out-of-root builds",
+      "tree": {
+        "sha": "b01b1c7994f97b782a75f552fd6226de3a3d201f",
+        "url": "https://api.github.com/repos/stedolan/jq/git/trees/b01b1c7994f97b782a75f552fd6226de3a3d201f"
+      },
+      "url": "https://api.github.com/repos/stedolan/jq/git/commits/e944fe843651b3044e5387c69b28b28f4999e9ea",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/stedolan/jq/commits/e944fe843651b3044e5387c69b28b28f4999e9ea",
+    "html_url": "https://github.com/stedolan/jq/commit/e944fe843651b3044e5387c69b28b28f4999e9ea",
+    "comments_url": "https://api.github.com/repos/stedolan/jq/commits/e944fe843651b3044e5387c69b28b28f4999e9ea/comments",
+    "author": {
+      "login": "wiiaboo",
+      "id": 111605,
+      "node_id": "MDQ6VXNlcjExMTYwNQ==",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/111605?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/wiiaboo",
+      "html_url": "https://github.com/wiiaboo",
+      "followers_url": "https://api.github.com/users/wiiaboo/followers",
+      "following_url": "https://api.github.com/users/wiiaboo/following{/other_user}",
+      "gists_url": "https://api.github.com/users/wiiaboo/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/wiiaboo/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/wiiaboo/subscriptions",
+      "organizations_url": "https://api.github.com/users/wiiaboo/orgs",
+      "repos_url": "https://api.github.com/users/wiiaboo/repos",
+      "events_url": "https://api.github.com/users/wiiaboo/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/wiiaboo/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "nicowilliams",
+      "id": 604851,
+      "node_id": "MDQ6VXNlcjYwNDg1MQ==",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/604851?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/nicowilliams",
+      "html_url": "https://github.com/nicowilliams",
+      "followers_url": "https://api.github.com/users/nicowilliams/followers",
+      "following_url": "https://api.github.com/users/nicowilliams/following{/other_user}",
+      "gists_url": "https://api.github.com/users/nicowilliams/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/nicowilliams/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/nicowilliams/subscriptions",
+      "organizations_url": "https://api.github.com/users/nicowilliams/orgs",
+      "repos_url": "https://api.github.com/users/nicowilliams/repos",
+      "events_url": "https://api.github.com/users/nicowilliams/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/nicowilliams/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "ad9fc9f559e78a764aac20f669f23cdd020cd943",
+        "url": "https://api.github.com/repos/stedolan/jq/commits/ad9fc9f559e78a764aac20f669f23cdd020cd943",
+        "html_url": "https://github.com/stedolan/jq/commit/ad9fc9f559e78a764aac20f669f23cdd020cd943"
+      }
+    ]
+  },
+  {
+    "sha": "ad9fc9f559e78a764aac20f669f23cdd020cd943",
+    "node_id": "MDY6Q29tbWl0NTEwMTE0MTphZDlmYzlmNTU5ZTc4YTc2NGFhYzIwZjY2OWYyM2NkZDAyMGNkOTQz",
+    "commit": {
+      "author": {
+        "name": "Mark Feit",
+        "email": "mfeit@internet2.edu",
+        "date": "2019-03-14T19:07:35Z"
+      },
+      "committer": {
+        "name": "Nicolas Williams",
+        "email": "nico@cryptonector.com",
+        "date": "2019-04-07T19:33:36Z"
+      },
+      "message": "Improve jv_is_integer()",
+      "tree": {
+        "sha": "67c22dd072ef8bce539cd10ef9536213711ffefb",
+        "url": "https://api.github.com/repos/stedolan/jq/git/trees/67c22dd072ef8bce539cd10ef9536213711ffefb"
+      },
+      "url": "https://api.github.com/repos/stedolan/jq/git/commits/ad9fc9f559e78a764aac20f669f23cdd020cd943",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/stedolan/jq/commits/ad9fc9f559e78a764aac20f669f23cdd020cd943",
+    "html_url": "https://github.com/stedolan/jq/commit/ad9fc9f559e78a764aac20f669f23cdd020cd943",
+    "comments_url": "https://api.github.com/repos/stedolan/jq/commits/ad9fc9f559e78a764aac20f669f23cdd020cd943/comments",
+    "author": {
+      "login": "mfeit-internet2",
+      "id": 14113568,
+      "node_id": "MDQ6VXNlcjE0MTEzNTY4",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/14113568?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mfeit-internet2",
+      "html_url": "https://github.com/mfeit-internet2",
+      "followers_url": "https://api.github.com/users/mfeit-internet2/followers",
+      "following_url": "https://api.github.com/users/mfeit-internet2/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mfeit-internet2/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mfeit-internet2/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mfeit-internet2/subscriptions",
+      "organizations_url": "https://api.github.com/users/mfeit-internet2/orgs",
+      "repos_url": "https://api.github.com/users/mfeit-internet2/repos",
+      "events_url": "https://api.github.com/users/mfeit-internet2/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mfeit-internet2/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "nicowilliams",
+      "id": 604851,
+      "node_id": "MDQ6VXNlcjYwNDg1MQ==",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/604851?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/nicowilliams",
+      "html_url": "https://github.com/nicowilliams",
+      "followers_url": "https://api.github.com/users/nicowilliams/followers",
+      "following_url": "https://api.github.com/users/nicowilliams/following{/other_user}",
+      "gists_url": "https://api.github.com/users/nicowilliams/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/nicowilliams/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/nicowilliams/subscriptions",
+      "organizations_url": "https://api.github.com/users/nicowilliams/orgs",
+      "repos_url": "https://api.github.com/users/nicowilliams/repos",
+      "events_url": "https://api.github.com/users/nicowilliams/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/nicowilliams/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "263e1061ea03a10ba280ef820adf537ffd71f3c0",
+        "url": "https://api.github.com/repos/stedolan/jq/commits/263e1061ea03a10ba280ef820adf537ffd71f3c0",
+        "html_url": "https://github.com/stedolan/jq/commit/263e1061ea03a10ba280ef820adf537ffd71f3c0"
+      }
+    ]
+  },
+  {
+    "sha": "263e1061ea03a10ba280ef820adf537ffd71f3c0",
+    "node_id": "MDY6Q29tbWl0NTEwMTE0MToyNjNlMTA2MWVhMDNhMTBiYTI4MGVmODIwYWRmNTM3ZmZkNzFmM2Mw",
+    "commit": {
+      "author": {
+        "name": "Mattias Hansson",
+        "email": "hansson.mattias@gmail.com",
+        "date": "2019-04-04T09:42:49Z"
+      },
+      "committer": {
+        "name": "Nico Williams",
+        "email": "nico@cryptonector.com",
+        "date": "2019-04-04T17:37:21Z"
+      },
+      "message": "jq_util_input_init: Zero memory using calloc\n\nCalloc will zero the allocated memory which makes one memset and a\nnumber of explicit zero assignments redundant.",
+      "tree": {
+        "sha": "2d767262480ef0f8a925d64a0ef553da9433ddeb",
+        "url": "https://api.github.com/repos/stedolan/jq/git/trees/2d767262480ef0f8a925d64a0ef553da9433ddeb"
+      },
+      "url": "https://api.github.com/repos/stedolan/jq/git/commits/263e1061ea03a10ba280ef820adf537ffd71f3c0",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/stedolan/jq/commits/263e1061ea03a10ba280ef820adf537ffd71f3c0",
+    "html_url": "https://github.com/stedolan/jq/commit/263e1061ea03a10ba280ef820adf537ffd71f3c0",
+    "comments_url": "https://api.github.com/repos/stedolan/jq/commits/263e1061ea03a10ba280ef820adf537ffd71f3c0/comments",
+    "author": {
+      "login": "orzen",
+      "id": 1375052,
+      "node_id": "MDQ6VXNlcjEzNzUwNTI=",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1375052?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/orzen",
+      "html_url": "https://github.com/orzen",
+      "followers_url": "https://api.github.com/users/orzen/followers",
+      "following_url": "https://api.github.com/users/orzen/following{/other_user}",
+      "gists_url": "https://api.github.com/users/orzen/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/orzen/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/orzen/subscriptions",
+      "organizations_url": "https://api.github.com/users/orzen/orgs",
+      "repos_url": "https://api.github.com/users/orzen/repos",
+      "events_url": "https://api.github.com/users/orzen/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/orzen/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "nicowilliams",
+      "id": 604851,
+      "node_id": "MDQ6VXNlcjYwNDg1MQ==",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/604851?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/nicowilliams",
+      "html_url": "https://github.com/nicowilliams",
+      "followers_url": "https://api.github.com/users/nicowilliams/followers",
+      "following_url": "https://api.github.com/users/nicowilliams/following{/other_user}",
+      "gists_url": "https://api.github.com/users/nicowilliams/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/nicowilliams/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/nicowilliams/subscriptions",
+      "organizations_url": "https://api.github.com/users/nicowilliams/orgs",
+      "repos_url": "https://api.github.com/users/nicowilliams/repos",
+      "events_url": "https://api.github.com/users/nicowilliams/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/nicowilliams/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "4f58a59f4d501390381522061b339af377c1c6dd",
+        "url": "https://api.github.com/repos/stedolan/jq/commits/4f58a59f4d501390381522061b339af377c1c6dd",
+        "html_url": "https://github.com/stedolan/jq/commit/4f58a59f4d501390381522061b339af377c1c6dd"
+      }
+    ]
+  },
+  {
+    "sha": "4f58a59f4d501390381522061b339af377c1c6dd",
+    "node_id": "MDY6Q29tbWl0NTEwMTE0MTo0ZjU4YTU5ZjRkNTAxMzkwMzgxNTIyMDYxYjMzOWFmMzc3YzFjNmRk",
+    "commit": {
+      "author": {
+        "name": "Mattias Hansson",
+        "email": "hansson.mattias@gmail.com",
+        "date": "2019-03-29T08:32:26Z"
+      },
+      "committer": {
+        "name": "Nico Williams",
+        "email": "nico@cryptonector.com",
+        "date": "2019-03-29T13:19:41Z"
+      },
+      "message": "Dockerfile: Uninstall oniguruma before distclean\n\nRun `make uninstall` for oniguruma before running the recursive\ndistclean that will remove oniguruma's Makefile and cause a build error\ndue to missing make target.",
+      "tree": {
+        "sha": "4b3e979d268a60789a8ed1fb127e848a10bbfc7d",
+        "url": "https://api.github.com/repos/stedolan/jq/git/trees/4b3e979d268a60789a8ed1fb127e848a10bbfc7d"
+      },
+      "url": "https://api.github.com/repos/stedolan/jq/git/commits/4f58a59f4d501390381522061b339af377c1c6dd",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/stedolan/jq/commits/4f58a59f4d501390381522061b339af377c1c6dd",
+    "html_url": "https://github.com/stedolan/jq/commit/4f58a59f4d501390381522061b339af377c1c6dd",
+    "comments_url": "https://api.github.com/repos/stedolan/jq/commits/4f58a59f4d501390381522061b339af377c1c6dd/comments",
+    "author": {
+      "login": "orzen",
+      "id": 1375052,
+      "node_id": "MDQ6VXNlcjEzNzUwNTI=",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1375052?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/orzen",
+      "html_url": "https://github.com/orzen",
+      "followers_url": "https://api.github.com/users/orzen/followers",
+      "following_url": "https://api.github.com/users/orzen/following{/other_user}",
+      "gists_url": "https://api.github.com/users/orzen/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/orzen/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/orzen/subscriptions",
+      "organizations_url": "https://api.github.com/users/orzen/orgs",
+      "repos_url": "https://api.github.com/users/orzen/repos",
+      "events_url": "https://api.github.com/users/orzen/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/orzen/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "nicowilliams",
+      "id": 604851,
+      "node_id": "MDQ6VXNlcjYwNDg1MQ==",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/604851?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/nicowilliams",
+      "html_url": "https://github.com/nicowilliams",
+      "followers_url": "https://api.github.com/users/nicowilliams/followers",
+      "following_url": "https://api.github.com/users/nicowilliams/following{/other_user}",
+      "gists_url": "https://api.github.com/users/nicowilliams/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/nicowilliams/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/nicowilliams/subscriptions",
+      "organizations_url": "https://api.github.com/users/nicowilliams/orgs",
+      "repos_url": "https://api.github.com/users/nicowilliams/repos",
+      "events_url": "https://api.github.com/users/nicowilliams/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/nicowilliams/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "584370127a49bf0663b864cb5b3a836ee8cb8399",
+        "url": "https://api.github.com/repos/stedolan/jq/commits/584370127a49bf0663b864cb5b3a836ee8cb8399",
+        "html_url": "https://github.com/stedolan/jq/commit/584370127a49bf0663b864cb5b3a836ee8cb8399"
+      }
+    ]
+  },
+  {
+    "sha": "584370127a49bf0663b864cb5b3a836ee8cb8399",
+    "node_id": "MDY6Q29tbWl0NTEwMTE0MTo1ODQzNzAxMjdhNDliZjA2NjNiODY0Y2I1YjNhODM2ZWU4Y2I4Mzk5",
+    "commit": {
+      "author": {
+        "name": "Mattias Hansson",
+        "email": "hansson.mattias@gmail.com",
+        "date": "2019-03-28T20:45:29Z"
+      },
+      "committer": {
+        "name": "Nico Williams",
+        "email": "nico@cryptonector.com",
+        "date": "2019-03-29T13:19:41Z"
+      },
+      "message": "Dockerfile: Fetch dependency as git submodule\n\nFetch oniguruma using git submodule instead of a release tarball. It\nwill fix a build problem, caused by jq's autotools configuration, trying\nto run `make distclean` recursively in an empty modules directory. This\nwill also improve the maintainability of the Dockerfile.",
+      "tree": {
+        "sha": "cbfe3a8f99b12b4645e95a616fc888c341bba9bd",
+        "url": "https://api.github.com/repos/stedolan/jq/git/trees/cbfe3a8f99b12b4645e95a616fc888c341bba9bd"
+      },
+      "url": "https://api.github.com/repos/stedolan/jq/git/commits/584370127a49bf0663b864cb5b3a836ee8cb8399",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/stedolan/jq/commits/584370127a49bf0663b864cb5b3a836ee8cb8399",
+    "html_url": "https://github.com/stedolan/jq/commit/584370127a49bf0663b864cb5b3a836ee8cb8399",
+    "comments_url": "https://api.github.com/repos/stedolan/jq/commits/584370127a49bf0663b864cb5b3a836ee8cb8399/comments",
+    "author": {
+      "login": "orzen",
+      "id": 1375052,
+      "node_id": "MDQ6VXNlcjEzNzUwNTI=",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1375052?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/orzen",
+      "html_url": "https://github.com/orzen",
+      "followers_url": "https://api.github.com/users/orzen/followers",
+      "following_url": "https://api.github.com/users/orzen/following{/other_user}",
+      "gists_url": "https://api.github.com/users/orzen/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/orzen/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/orzen/subscriptions",
+      "organizations_url": "https://api.github.com/users/orzen/orgs",
+      "repos_url": "https://api.github.com/users/orzen/repos",
+      "events_url": "https://api.github.com/users/orzen/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/orzen/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "nicowilliams",
+      "id": 604851,
+      "node_id": "MDQ6VXNlcjYwNDg1MQ==",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/604851?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/nicowilliams",
+      "html_url": "https://github.com/nicowilliams",
+      "followers_url": "https://api.github.com/users/nicowilliams/followers",
+      "following_url": "https://api.github.com/users/nicowilliams/following{/other_user}",
+      "gists_url": "https://api.github.com/users/nicowilliams/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/nicowilliams/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/nicowilliams/subscriptions",
+      "organizations_url": "https://api.github.com/users/nicowilliams/orgs",
+      "repos_url": "https://api.github.com/users/nicowilliams/repos",
+      "events_url": "https://api.github.com/users/nicowilliams/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/nicowilliams/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "528a4f59450402b1fe97a6f20307e5187c190eb7",
+        "url": "https://api.github.com/repos/stedolan/jq/commits/528a4f59450402b1fe97a6f20307e5187c190eb7",
+        "html_url": "https://github.com/stedolan/jq/commit/528a4f59450402b1fe97a6f20307e5187c190eb7"
+      }
+    ]
+  }
+]
+#+end_example
+
+Github returns a nicely formatted json file. For those that don't, we can use jq's
+#+BEGIN_SRC bash :results verbatim
+# format all
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5' | jq '.'
+#+END_SRC
+
+#+BEGIN_SRC bash :results verbatim
+# extract the first commit 
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5' | jq '.[0]'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+{
+  "sha": "e944fe843651b3044e5387c69b28b28f4999e9ea",
+  "node_id": "MDY6Q29tbWl0NTEwMTE0MTplOTQ0ZmU4NDM2NTFiMzA0NGU1Mzg3YzY5YjI4YjI4ZjQ5OTllOWVh",
+  "commit": {
+    "author": {
+      "name": "Ricardo Constantino",
+      "email": "wiiaboo@gmail.com",
+      "date": "2019-05-29T19:36:18Z"
+    },
+    "committer": {
+      "name": "Nico Williams",
+      "email": "nico@cryptonector.com",
+      "date": "2019-06-11T16:57:02Z"
+    },
+    "message": "Makefile.am: fix builtin.inc with out-of-root builds",
+    "tree": {
+      "sha": "b01b1c7994f97b782a75f552fd6226de3a3d201f",
+      "url": "https://api.github.com/repos/stedolan/jq/git/trees/b01b1c7994f97b782a75f552fd6226de3a3d201f"
+    },
+    "url": "https://api.github.com/repos/stedolan/jq/git/commits/e944fe843651b3044e5387c69b28b28f4999e9ea",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null
+    }
+  },
+  "url": "https://api.github.com/repos/stedolan/jq/commits/e944fe843651b3044e5387c69b28b28f4999e9ea",
+  "html_url": "https://github.com/stedolan/jq/commit/e944fe843651b3044e5387c69b28b28f4999e9ea",
+  "comments_url": "https://api.github.com/repos/stedolan/jq/commits/e944fe843651b3044e5387c69b28b28f4999e9ea/comments",
+  "author": {
+    "login": "wiiaboo",
+    "id": 111605,
+    "node_id": "MDQ6VXNlcjExMTYwNQ==",
+    "avatar_url": "https://avatars2.githubusercontent.com/u/111605?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/wiiaboo",
+    "html_url": "https://github.com/wiiaboo",
+    "followers_url": "https://api.github.com/users/wiiaboo/followers",
+    "following_url": "https://api.github.com/users/wiiaboo/following{/other_user}",
+    "gists_url": "https://api.github.com/users/wiiaboo/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/wiiaboo/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/wiiaboo/subscriptions",
+    "organizations_url": "https://api.github.com/users/wiiaboo/orgs",
+    "repos_url": "https://api.github.com/users/wiiaboo/repos",
+    "events_url": "https://api.github.com/users/wiiaboo/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/wiiaboo/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "nicowilliams",
+    "id": 604851,
+    "node_id": "MDQ6VXNlcjYwNDg1MQ==",
+    "avatar_url": "https://avatars2.githubusercontent.com/u/604851?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/nicowilliams",
+    "html_url": "https://github.com/nicowilliams",
+    "followers_url": "https://api.github.com/users/nicowilliams/followers",
+    "following_url": "https://api.github.com/users/nicowilliams/following{/other_user}",
+    "gists_url": "https://api.github.com/users/nicowilliams/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/nicowilliams/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/nicowilliams/subscriptions",
+    "organizations_url": "https://api.github.com/users/nicowilliams/orgs",
+    "repos_url": "https://api.github.com/users/nicowilliams/repos",
+    "events_url": "https://api.github.com/users/nicowilliams/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/nicowilliams/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "ad9fc9f559e78a764aac20f669f23cdd020cd943",
+      "url": "https://api.github.com/repos/stedolan/jq/commits/ad9fc9f559e78a764aac20f669f23cdd020cd943",
+      "html_url": "https://github.com/stedolan/jq/commit/ad9fc9f559e78a764aac20f669f23cdd020cd943"
+    }
+  ]
+}
+#+end_example
+
+
+
+#+BEGIN_SRC bash :results verbatim 
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5' | jq '.[0] | {message: .commit.message, name: .commit.comitted.name}'
+#+END_SRC
+
+#+RESULTS:
+: {
+:   "message": "Makefile.am: fix builtin.inc with out-of-root builds",
+:   "name": null
+: }
+
+The | operator in jq feeds the output of one filter (.[0] which fets the first element of an array in the response) into the output of another ({...} which builds an object out of those fields). We can also access nested attributes, such as .commit.message
+ 
+#+BEGIN_SRC bash :results verbatim
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5' | jq '.[] | {message: .commit.message, name: .commit.committer.name}'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+{
+  "message": "Makefile.am: fix builtin.inc with out-of-root builds",
+  "name": "Nico Williams"
+}
+{
+  "message": "Improve jv_is_integer()",
+  "name": "Nicolas Williams"
+}
+{
+  "message": "jq_util_input_init: Zero memory using calloc\n\nCalloc will zero the allocated memory which makes one memset and a\nnumber of explicit zero assignments redundant.",
+  "name": "Nico Williams"
+}
+{
+  "message": "Dockerfile: Uninstall oniguruma before distclean\n\nRun `make uninstall` for oniguruma before running the recursive\ndistclean that will remove oniguruma's Makefile and cause a build error\ndue to missing make target.",
+  "name": "Nico Williams"
+}
+{
+  "message": "Dockerfile: Fetch dependency as git submodule\n\nFetch oniguruma using git submodule instead of a release tarball. It\nwill fix a build problem, caused by jq's autotools configuration, trying\nto run `make distclean` recursively in an empty modules directory. This\nwill also improve the maintainability of the Dockerfile.",
+  "name": "Nico Williams"
+}
+#+end_example
+
+.[] returns each element of the array returned in the response, one at a time, which are fed into {message: .commit.message, name: .commit.committer.name}.
+
+Data in jq are represented as streams of  JSON values - every jq expression runs for each value in its input stream, and can produce any number of values to its output stream. 
+
+Streams are serialized by separating JSON values with whitespace. This is a cat friendly format - we can join two json streams together to get a valid json stream. 
+
+If we wish to get a single array output, we can tell jq to collect all of the answers by wrapping the filter in square brackets:
+
+#+BEGIN_SRC bash :results verbatim
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5' | jq '[.[] | {message: .commit.message, name: .commit.committed.name}]'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[
+  {
+    "message": "Makefile.am: fix builtin.inc with out-of-root builds",
+    "name": null
+  },
+  {
+    "message": "Improve jv_is_integer()",
+    "name": null
+  },
+  {
+    "message": "jq_util_input_init: Zero memory using calloc\n\nCalloc will zero the allocated memory which makes one memset and a\nnumber of explicit zero assignments redundant.",
+    "name": null
+  },
+  {
+    "message": "Dockerfile: Uninstall oniguruma before distclean\n\nRun `make uninstall` for oniguruma before running the recursive\ndistclean that will remove oniguruma's Makefile and cause a build error\ndue to missing make target.",
+    "name": null
+  },
+  {
+    "message": "Dockerfile: Fetch dependency as git submodule\n\nFetch oniguruma using git submodule instead of a release tarball. It\nwill fix a build problem, caused by jq's autotools configuration, trying\nto run `make distclean` recursively in an empty modules directory. This\nwill also improve the maintainability of the Dockerfile.",
+    "name": null
+  }
+]
+#+end_example
+
+Suppose we wish to get the URLs of the parent commits out of the API results as well. In each commit, the github API includes information about parent commits. There can be one or many.
+
+We want to pull out all of the html_url fields inside that array of parent commits and make a simple list of strings to go along with the message and author fields that we already have
+
+#+BEGIN_SRC bash
+curl 'https://api.github.com/repos/stedolan/jq/commits?per_page=5' | jq '[.[] | {message: .commit.message, name: .commit.committer.name, parents: [.parents[].html_url]}]'
+#+END_SRC
+
+#+RESULTS:
+
+For more information, check out the [[https://stedolan.github.io/jq/manual/][manual ]]
