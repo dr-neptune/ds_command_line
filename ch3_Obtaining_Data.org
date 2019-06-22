@@ -144,3 +144,146 @@ The tools in2csv, csvcut, and csvlook are a part of csvkit.
 
 ** 3.5 | Querying Relational Databases 
 
+We can connect to most databases via command line, but they all have differing APIs. We can also use the cmd line tool sql2csv, which supports select, insert, update, and delete queries.
+
+To select a specific set of data from an sqlite db named iris.db, we can invoke sql2csv as follows:
+
+#+BEGIN_SRC bash
+sql2csv --db 'sqlite:///data/iris.db' --query 'SELECT * FROM iris WHERE sepal_length > 7.5'
+#+END_SRC
+
+#+RESULTS:
+
+** 3.6 | Downloading from the Internet 
+
+The swiss army knife for downloading from the internet is curl. We can specify a url for curl, such as 
+
+#+BEGIN_SRC bash :results verbatim raw
+curl -s http://www.gutenberg.org/files/76/76-0.txt | head -n 10
+#+END_SRC
+
+#+RESULTS:
+﻿
+The Project Gutenberg EBook of Adventures of Huckleberry Finn, Complete
+by Mark Twain (Samuel Clemens)
+
+This eBook is for the use of anyone anywhere at no cost and with almost
+no restrictions whatsoever. You may copy it, give it away or re-use
+it under the terms of the Project Gutenberg License included with this
+eBook or online at www.gutenberg.net
+
+Title: Adventures of Huckleberry Finn, Complete
+
+The -s stands for silent. If we don't specify this, we get a progress bar.
+
+#+BEGIN_SRC bash :results verbatim
+curl http://www.gutenberg.org/files/76/76-0.txt | head -n 10
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+﻿
+The Project Gutenberg EBook of Adventures of Huckleberry Finn, Complete
+by Mark Twain (Samuel Clemens)
+
+This eBook is for the use of anyone anywhere at no cost and with almost
+no restrictions whatsoever. You may copy it, give it away or re-use
+it under the terms of the Project Gutenberg License included with this
+eBook or online at www.gutenberg.net
+
+Title: Adventures of Huckleberry Finn, Complete
+#+end_example
+
+If we save the data to a file, we don't need to specify the -s command
+
+#+BEGIN_SRC bash
+curl -s http://www.gutenberg.org/files/76/76-0.txt > finn.txt
+#+END_SRC
+
+#+RESULTS:
+
+We can also save the data by specifying the -o command
+
+#+BEGIN_SRC bash
+curl -s http://www.gutenberg.org/files/76/76-0.txt -o finn.txt
+#+END_SRC
+
+#+RESULTS:
+
+When the url is password protected, we can specify as such: 
+
+#+BEGIN_SRC bash
+curl -u username:password ftp://host/file
+#+END_SRC
+
+#+RESULTS:
+
+If the specified url is a directory, curl will list the contents of the directory. If we access a shortened url, such as bit.ly, with curl we need to specify the -L or --location option in order to be redirected
+
+#+BEGIN_SRC bash
+curl -L j.mp/locatbbar
+#+END_SRC
+
+#+RESULTS:
+
+
+If we don't specify the -L flag, we will get something like
+
+#+BEGIN_SRC bash :results verbatim
+curl j.mp/locatbbar
+#+END_SRC
+
+#+RESULTS:
+: <html>
+: <head><title>Bitly</title></head>
+: <body><a href="http://en.wikipedia.org/wiki/List_of_countries_and_territories_by_border/area_ratio">moved here</a></body>
+: </html>
+
+By specifying the -I or --head option, curl fetches only the HTTP header of the response.
+
+#+BEGIN_SRC bash :results verbatim
+curl -I j.mp/locatbbar
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 301 Moved Permanently
+: Server: nginx
+: Date: Sat, 22 Jun 2019 03:18:36 GMT
+: Content-Type: text/html; charset=utf-8
+: Content-Length: 170
+: Connection: keep-alive
+: Cache-Control: private, max-age=90
+: Location: http://en.wikipedia.org/wiki/List_of_countries_and_territories_by_border/area_ratio
+: 
+
+In summary, curl is used to download data from the internet. 
+
+- \-s supresses progress meter 
+- \-u specifies a username and password
+-  \-L automatically follows redirects 
+
+** 3.7 | Calling a Web API 
+
+Web APIs often return data in a structured format, such as xml or json. We can use jq to deal with this 
+
+#+BEGIN_SRC bash :results verbatim raw
+curl -s https://randomuser.me/api/1.2 | jq
+#+END_SRC
+
+#+RESULTS:
+
+Some APIs require you to log in using the OAuth protocol. There is a cmd line tool called curlicue that assists. It helps navigate the authentication. 
+
+For example, with the twitter api we might run:
+
+#+BEGIN_SRC bash
+curlicue-setup \
+'https://api.twitter.com/oauth/request_token' \
+'https://api.twitter.com/oauth/authorize?oauth_token=$oauth_token' \
+'https://api.twitter.com/oauth/access_token' \
+credentials
+curlicue -f credentials \
+'https://api.twitter.com/1/statuses/home_timeline.xml'
+#+END_SRC
+
+#+RESULTS:
