@@ -1,0 +1,428 @@
+* Chapter 4 | Creating Reusable Command Line Tools 
+
+In this chapter, we will focus on converting one liners into shell scripts and making existing python, R, and java code part of the command line.
+
+** 4.2 | Converting One Liners into Shell Scripts 
+
+Imagine we have the following one linear:
+
+#+BEGIN_SRC bash :results verbatim raw :dir ~/Desktop/log/ds_cmd/ :session :tangle top-words-1.sh
+curl -s http://www.gutenberg.org/files/76/76-0.txt | 
+tr '[:upper:]' '[:lower:]' | 
+grep -oE '\w+' | 
+sort | 
+uniq -c | 
+sort -nr | 
+head -n 10
+#+END_SRC
+
+#+RESULTS:
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+   2567 it
+   2086 t
+   2044 was
+   1847 he
+   1777 of
+
+Now we can use bash to interpret and execute the commands in the file 
+
+#+BEGIN_SRC bash :results verbatim raw
+bash top-words-1.sh
+#+END_SRC
+
+#+RESULTS:
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+   2567 it
+   2086 t
+   2044 was
+   1847 he
+   1777 of
+
+*** 4.2.2 | Add Permission to Execute 
+
+In order to execute a shell script, we often need to give ourselves or another user the ability to execute the script
+
+#+BEGIN_SRC bash :results verbatim
+chmod u+x top-words-1.sh
+#+END_SRC
+
+#+RESULTS:
+
+The command line argument u+x consists of 3 characters. 
+
+- u indicates that we want to change the permissions for the user who owns a file
+- + indicates that we want to add a permission
+- x indicates the permission to execute 
+
+We can look at the access permissions of our files as such:
+
+#+BEGIN_SRC bash :results verbatim raw
+ls -l top-words-*
+#+END_SRC
+
+#+RESULTS:
+-rwxrw-r-- 1 michael michael 144 Jun 23 18:57 top-words-1.sh
+
+The first column shows the access permissions for each file. The first character - indicates the file type. A *-* means regular file and a *d* means directory. The next three characters, rwx indicates the access permissions for the user who owns the file (read, write, execute). The next three characters rw- indicate the access permissions for all members of the group that own the file. Finally, the last column r-- indicate the access permissions for all other users. 
+
+Note that we can also execute the file without specifying bash if we are in the directory:
+
+#+BEGIN_SRC bash :results verbatim
+./top-words-1.sh
+#+END_SRC 
+
+#+RESULTS:
+#+begin_example
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+   2567 it
+   2086 t
+   2044 was
+   1847 he
+   1777 of
+#+end_example
+
+*** 4.2.3 | Define Shebang 
+
+Although we can already execute the file on its own, we should also add a shebang to the file. The shebang is a special line in the script which instructs the system as to which executable should be used to interpret the commands.
+
+In our case, we want bash to interpret our commands. 
+
+#+BEGIN_SRC bash :results verbatim :tangle top-words-2.sh
+#!/usr/bin/env bash 
+
+curl -s http://www.gutenberg.org/files/76/76-0.txt | 
+tr '[:upper:]' '[:lower:]' | 
+grep -oE '\w+' | 
+sort | 
+uniq -c | 
+sort -nr | 
+head -n 10
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+   2567 it
+   2086 t
+   2044 was
+   1847 he
+   1777 of
+#+end_example
+
+The bash shell, which we are using, uses the executable bin/sh by default. Other shells may have different defaults, so it is best to define the shebang in each shell script to have behavior as expected. 
+
+Sometimes we will come across scripts that have a shebang in the form of !usr/bin/bash or !usr/bin/python. While this generally words, if the bash or python executables are in a different location than usr/bin, the script doesn't work anymore. If is better to use the form we present here, *!usr/bin/env bash* and *!usr/bin/env python* because the *env* executable is aware where bash and python are installed. In short, using *env* makes our scripts more portable.
+
+*** 4.2.4 | Remove Fixed Input 
+
+Suppose we wanted to obtain the top 10 most used words from another e-book, or any other text. The input data is fixed within the tools itself in this case, so we want to separate the data from the command line tool. The solution is to simply remove the curl command from the script. 
+
+#+BEGIN_SRC bash :results verbatim :tangle top-words-4.sh
+tr '[:upper:]' '[:lower:]' | 
+grep -oE '\w+' | 
+sort | 
+uniq -c | 
+sort -nr | 
+head -n 10
+#+END_SRC
+
+#+RESULTS:
+
+This works because if a script starts with a command that needs data from standard input, like tr, it will take the input that is given to the command line tools. For example 
+
+#+BEGIN_SRC bash :results verbatim :dir ~/Desktop/log/ds_cmd/
+chmod u+x *.txt 
+chmod u+x *.sh
+
+cat finn.txt | bash top-words-4.sh
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+   2567 it
+   2086 t
+   2044 was
+   1847 he
+   1777 of
+#+end_example
+
+*** 4.2.5 | Parameterize 
+
+There is another step we can perform to make our command line tool even more reusable: parameters. Suppose we wanted to allow the user to control the number of terms that the head command uses. 
+
+#+BEGIN_SRC bash :results verbatim :tangle top-words-5.sh
+
+#!/usr/bin/env bash 
+
+NUM_WORDS="$1"
+
+tr '[:upper:]' '[:lower:]' | 
+grep -oE '\w+' | 
+sort | 
+uniq -c | 
+sort -nr | 
+head -n $NUM_WORDS
+#+END_SRC
+
+#+RESULTS:
+
+The variable NUM_WORDS is set to the value of $1, which is a special variable in bash. It holds the value of the first command line argument passed to our tool. We could also have used $1 directly as an argument for head and not have bothered creating an extra variable such as NUM_WORDS. With larger scripts and a few more command line arguments such as $2 and $3, the code becomes more readable when we use named variables. 
+
+Now if we wanted to see the top 5 most used words in our text, we could do it as such:
+
+#+BEGIN_SRC bash :results verbatim raw
+cat finn.txt | bash top-words-5.sh 5
+#+END_SRC
+
+#+RESULTS:
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+
+If the user doesn't provide an argument, then head will return an error message because the value of $1, and therefore $NUM_WORDS, will be an empty string. 
+
+*** 4.2.6 | Extend your PATH 
+
+Currently, when we execute our command line tool, we either have to navigate to the directory it is in or include the full path name. This is fine if the tool is project specific, but if we want to execute it from anywhere we need to let bash know where to look for our command. It does this by traversing a list of directories that are stored in an environment variable called PATH. 
+
+#+BEGIN_SRC bash :results verbatim
+echo $PATH | fold
+#+END_SRC
+
+#+RESULTS:
+: /home/michael/.local/bin:/home/michael/bin:/usr/local/sbin:/usr/local/bin:/usr/s
+: bin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+The directories are delimited by colons. Here is a list of directories:
+
+#+BEGIN_SRC bash :results verbatim
+echo $PATH | tr ':' '\n'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+/home/michael/.local/bin
+/home/michael/bin
+/usr/local/sbin
+/usr/local/bin
+/usr/sbin
+/usr/bin
+/sbin
+/bin
+/usr/games
+/usr/local/games
+#+end_example
+
+To change the PATH permanently, we need to edit the .bashrc or .profile file located in our home directory. If we put all of our tools into one directory, then we only need to change our PATH once. 
+
+** 4.3 | Creating Command Line Tools with Python and R
+
+In this section, we demonstrate that command line tools can be created in other programming languages as well. 
+
+There are three main reasons for creating command line tools in a language that isn't bash: 
+
+1. We may have existing code that we wish to be able to use from the command line
+2. The command line tool would end up encompassing over 100 lines of code
+3. The command line tool needs to be very fast 
+
+Command line tools in Python and R need to specify *python* and *Rscript* respectively as the interpreter after shebang. 
+
+When creating command line tools in python and R, we need to pay special attention to two more aspects:
+
+1. Processing standard inputs has to be taken care of explicitly in Python and R
+2. As command line tools in python and R tend to be more complex, we want to offer the user the ability to specify more complex command line arguments 
+
+*** 4.3.1 | Porting the Shell Script 
+
+As a starting point, let's see how we would port the prior shell script to both python and R. 
+
+First, in python: 
+
+#+BEGIN_SRC python :results verbatim :tangle top-words.py
+
+#!/usr/bin/env python
+import re
+import sys
+from collections import Counter
+num_words = int(sys.argv[1])
+text = sys.stdin.read().lower()
+words = re.split('\W+', text)
+cnt = Counter(words)
+for word, count in cnt.most_common(num_words):
+    print("%7d %s" % (count, word))
+#+END_SRC
+
+Next, in R: 
+
+#+BEGIN_SRC R :results verbatim :tangle top-words.R
+
+#!/usr/bin/env Rscript 
+n <- as.integer(commandArgs(trailingOnly = TRUE))
+f <- file("stdin")
+lines <- readLines(f)
+words <- tolower(unlist(strsplit(lines, "\\W+")))
+counts <- sort(table(words), decreasing = TRUE)
+counts_n <- counts[1:n]
+
+cat(sprintf("%7d %s\n", counts_n, names(counts_n)), sep = "")
+close(f)
+#+END_SRC
+
+#+RESULTS:
+
+
+Now let's check that all 3 of our implementations (bash, python, and R) all return the same thing: 
+
+*bash*
+
+#+BEGIN_SRC bash :results verbatim raw
+cat finn.txt | bash top-words-5.sh 5
+#+END_SRC
+
+#+RESULTS:
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+
+*python*
+
+#+BEGIN_SRC bash :results verbatim raw
+cat finn.txt | python3 top-words.py 5
+#+END_SRC
+
+#+RESULTS:
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+
+#+BEGIN_SRC bash :results verbatim raw 
+cat finn.txt | Rscript top-words.R 5
+#+END_SRC
+
+#+RESULTS:
+   6439 and
+   5077 the
+   3666 i
+   3258 a
+   3022 to
+
+*** 4.3.2 | Processing Streaming Data from Standard Input 
+
+In the previous snippets, we read the standard input all at once. On the command line, we usually pipe data to the next tool in a streaming fashion. There are a few command line tools which require the complete data before they write any data to standard output, like sort and awk. Since our tools are usually streamed, this is a problem when the input data is a nonstop stream. 
+
+Luckily, both R and python support processing streaming data. We can apply a function on a line per line basis. 
+
+Here are some examples for streaming data:
+
+#+BEGIN_SRC python :results verbatim :tangle stream.py
+#!/usr/bin/env python 
+
+from sys import stdin, stdout
+
+while True: 
+    line = stdin.readline()
+    if not line:
+        break
+    stdout.write("%d\n" % int(line)**2)
+    stdout.flush
+#+END_SRC
+
+#+BEGIN_SRC R :results verbatim :tangle stream.R
+
+#!/usr/bin/env Rscript
+
+f <- file("stdin")
+open(f)
+
+while(length(line <- readLines(f, n = 1)) > 0) {
+    write(as.integer(line)^2, stdout())
+}
+
+close(f)
+
+#+END_SRC
+
+#+RESULTS:
+: 0
+
+
+** 4.4 | Further Reading 
+
+Docopt. 2014. “Command-Line Interface Description Language.” http://docopt.org.
+Robbins, Arnold, and Nelson H. F. Beebe. 2005. Classic Shell Scripting. O’Reilly Media.
+Peek, Jerry, Shelley Powers, Tim O’Reilly, and Mike Loukides. 2002. Unix Power Tools. 3rd Ed. O’Reilly Media.
+Perkins, Jacob. 2010. Python Text Processing with Nltk 2.0 Cookbook. Packt Publishing.
+McKinney, Wes. 2012. Python for Data Analysis. O’Reilly Media.
+Rossant, Cyrille. 2013. Learning Ipython for Interactive Computing and Data Visualization. Packt Publishing.
+Wirzenius, Lars. 2013. “Writing Manual Pages.” http://liw.fi/manpages/.
+Raymond, Eric Steven. 2014. “Basics of the Unix Philosophy.” http://www.faqs.org/docs/artu/ch01s06.html.
+
+** 4.5 | Bonus | Basics of the UNIX Philosophy 
+
+From Doug McIlroy:
+
+1. Make each program do one thing well. To do a new job, build afresh rather than complicate old programs by adding new features.
+2. Expect the output of every program to become the input of another, as yet unknown, program. Don't clutter output with extraneous information. Avoid stringently columnar or binary input formats. Don't insist on interactive input. 
+3. Design and build software, even operating systems, to be tried early, ideally within weeks. Don't hesitate to throw away the clumsy parts and rebuild them.
+4. Use tools in preference to unskilled help to lighten a programming task, even if you have to detour to build the tools and expect to throw some of them out after you've finished using them. 
+
+He later summarized this as: 
+
+*This is the UNIX Philosophy: Write programs that do one thing and do it well. Write programs to work together. Write programs to handle text streams, because that is a universal interface.*
+
+Rob Pike offers a slightly different angle:
+
+1. You can't tell where a program is going to spend its time. Bottlenecks occur in surprising places, so don't try to second guess and put in a speed hack until you've proven that's where the bottleneck is.
+2. Measure. Don't tune for speed until you've measured, and even then don't unless one part of the code overwhelms the rest.
+3. Fancy algorithms are slow when n is small, and n is usually small. Fancy algorithms have big constants. Until you know that n is frequently going to be big, don't get fancy. If n does get big, use rule 2 first.
+4. Fancy algorithms are buggier than simple ones, and they are much harder to implement. Use simple algorithms as well as simple data structures. OR: When in doubt, use brute force.
+5. Data dominates. If you've chosen the right data structures and organized things well, the algorithms will almost always be self evident. Data structures, not algorithms, are central to programming.
+6. There is no rule 6 
+
+More of the UNIX Philosophy was implied not by what these elders said, but by what they did. Looking at the whole, we can abstract the following ideas: 
+
+1. *Rule of Modularity* : Write simple parts connected by clean interfaces
+2. *Rule of Clarity* : Clarity is better than cleverness
+3. *Rule of Composition* : Design programs to be connected to other programs
+4. *Rule of Separation* : Separate policy from mechanism; separate interfaces from engines
+5. *Rule of Simplicity* : Design for simplicity; add complexity only where you must
+6. *Rule of Parsimony* : Write a big program only when it is clear by demonstration that nothing else will do
+7. *Rule of Transparency* : Design for visibility to make inspection and debugging easier
+8. *Rule of Robustness* : Robustness is the child of transparency and simplicity 
+9. *Rule of Representation* : Fold knowledge into data so program logic can be stupid and robust
+10. *Rule of Least Surprise* : In interface design, always do the least surprising thing
+11. *Rule of Silence* : When a program has nothing surprising to say, it should say nothing
+12. *Rule of Repair* : When you must fail, fail noisily and as soon as possible
+13. *Rule of Economy* : Programmer time is expensive, conserve it in preference to machine time
+14. *Rule of Generation* : Avoid hand-hacking; write programs to write programs when you can
+15. *Rule of Optimization* : Prototype before polishing. Get it working before you optimize it
+16. *Rule of Diversity* : Distrust all claims for the "one true way"
+17. *Rule of Extensibility* : Design for the future, because it will be here sooner than you think 
+
