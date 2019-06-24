@@ -1,2 +1,490 @@
 * Chapter 5 | Scrubbing Data 
 
+Tools that we will discuss in this chapter include classic ones such as: 
+
+- *cut*
+- *sed*
+- *jq*
+- *csvgrep*
+
+The scrubbing tasks in this chapter apply to more than input data as well. Sometimes we need to reformat the output of some command line tools. 
+
+For example, to transform the output of uniq -c to a CSV data set, we could use awk and header 
+
+#+BEGIN_SRC bash :results verbatim
+echo 'foo\nbar\nfoo' | sort | uniq -c | sort -nr
+#+END_SRC
+
+#+RESULTS:
+:       1 foo\nbar\nfoo
+
+#+BEGIN_SRC bash :results verbatim
+echo 'foo\nbar\nfoo' | sort | uniq -c | sort -nr | awk '{print $2","$1}' | header -a
+#+END_SRC
+
+#+RESULTS:
+: foo
+: bar
+: foo,1
+
+If our data requires additional functionality, we can use csvsql. This tool allows us to perform SQL queries directly on CSV files. We could also use R, python, or whatever else. 
+
+** 5.1 | Overview
+
+In this chapter, we will learn to 
+
+- Convert data from one format to another
+- Apply SQL queries to CSV
+- Filter lines
+- Extract and replace values
+- Split, merge, and extract columns
+
+** 5.2 | Common Scrub Operations on Plain Text 
+
+Examples of plain text include ebooks, emails, log files, and source code. We will assume that the plain text contains some data, and that it has no clear tabular structure (like CSV) or nested structure (like XML, HTML or JSON). 
+
+*** 5.2.1 | Filtering Lines 
+
+*Based on Location*
+
+To illustrate how to filter based on location, let's create a dummy file that contains 10 lines
+
+#+BEGIN_SRC bash :results verbatim
+seq -f "Line %g" 10 | tee lines
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Line 1
+Line 2
+Line 3
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+#+end_example
+
+We can print the first 3 lines using either head, sed, or awk 
+
+#+BEGIN_SRC bash :results verbatim
+< lines head -n 3
+echo "---"
+< lines sed -n '1,3p'
+echo "---"
+< lines awk 'NR<=3'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Line 1
+Line 2
+Line 3
+---
+Line 1
+Line 2
+Line 3
+---
+Line 1
+Line 2
+Line 3
+#+end_example
+
+Similarly we can use tail for the last lines 
+
+#+BEGIN_SRC bash :results verbatim
+< lines tail -n 3
+#+END_SRC
+
+#+RESULTS:
+: Line 8
+: Line 9
+: Line 10
+
+We can also use sed and awk for this, but tail is much faster. 
+
+Removing the first three lines goes as follows
+
+#+BEGIN_SRC bash :results verbatim
+< lines tail -n +4
+echo "---"
+< lines sed '1,3d'
+echo "---"
+< lines sed -n '1,3!p'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+---
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+---
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+#+end_example
+
+Notice that with tail we need to add one. 
+
+Removing the last 3 lines can be done with head 
+
+#+BEGIN_SRC bash :results verbatim
+< lines head -n -3
+#+END_SRC
+
+#+RESULTS:
+: Line 1
+: Line 2
+: Line 3
+: Line 4
+: Line 5
+: Line 6
+: Line 7
+
+We can print (or extract) specific lines (4,5,6 in this case) using either sed, awk, or a combination of head and tail 
+
+#+BEGIN_SRC bash :results verbatim
+< lines sed -n '4,6p'
+echo "---"
+< lines awk '(NR>=4)&&(NR<=6)'
+echo "---"
+< lines head -n 6 | tail -n 3
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Line 4
+Line 5
+Line 6
+---
+Line 4
+Line 5
+Line 6
+---
+Line 4
+Line 5
+Line 6
+#+end_example
+
+Print odd lines with sed by specifying a start and a step, or with awk and the modulo operator 
+
+#+BEGIN_SRC bash :results verbatim
+< lines sed -n '1~2p'
+echo "---"
+< lines awk 'NR%2'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Line 1
+Line 3
+Line 5
+Line 7
+Line 9
+---
+Line 1
+Line 3
+Line 5
+Line 7
+Line 9
+#+end_example
+
+Printing even lines works in a similar manner: 
+
+#+BEGIN_SRC bash :results verbatim
+< lines sed -n '0~2p'
+echo "---"
+< lines awk '(NR+1)%2'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Line 2
+Line 4
+Line 6
+Line 8
+Line 10
+---
+Line 2
+Line 4
+Line 6
+Line 8
+Line 10
+#+end_example
+
+*Based on Pattern*
+
+Using grep we can print every line that matches a certain pattern or regular expression. 
+
+For example, to extract all the chapter headings from Alice's Adventures in Wonderland:
+
+#+BEGIN_SRC bash :results verbatim
+grep -i chapter alice.txt
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+CHAPTER I. Down the Rabbit-Hole
+CHAPTER II. The Pool of Tears
+CHAPTER III. A Caucus-Race and a Long Tale
+CHAPTER IV. The Rabbit Sends in a Little Bill
+CHAPTER V. Advice from a Caterpillar
+CHAPTER VI. Pig and Pepper
+CHAPTER VII. A Mad Tea-Party
+CHAPTER VIII. The Queen's Croquet-Ground
+CHAPTER IX. The Mock Turtle's Story
+CHAPTER X. The Lobster Quadrille
+CHAPTER XI. Who Stole the Tarts?
+CHAPTER XII. Alice's Evidence
+#+end_example
+
+Here -i means case insensitive. We can also specify a regular expression. 
+
+For example, if we only wanted to print out the headings which start with The: 
+
+#+BEGIN_SRC bash :results verbatim
+grep -E '^CHAPTER (.*)\. The' alice.txt
+#+END_SRC
+
+#+RESULTS:
+: CHAPTER II. The Pool of Tears
+: CHAPTER IV. The Rabbit Sends in a Little Bill
+: CHAPTER VIII. The Queen's Croquet-Ground
+: CHAPTER IX. The Mock Turtle's Story
+: CHAPTER X. The Lobster Quadrille
+
+Note that we have to specify the -E command line argument in order to enable regular expressions, otherwise grep interprets the pattern as a literal string. 
+
+*Based on Randomness*
+
+When we have a lot of data, the sampling might be useful. The main purpose of sample is to get a subset of the data by outputting only a certain percentage of the input on a line by line basis. 
+
+#+BEGIN_SRC bash :results verbatim
+seq 1000 | sample -r 1% | jq -c '{line: .}'
+#+END_SRC
+
+#+RESULTS:
+: {"line":108}
+: {"line":398}
+: {"line":421}
+: {"line":581}
+: {"line":588}
+: {"line":678}
+: {"line":759}
+: {"line":760}
+: {"line":993}
+
+Here, every input has a one percent chance of being forwarded to jq. This percentage could also have been specified as a fraction or as a probability. 
+
+sample also allows us to add some delay to its output. This is useful for streams. We can also put a timer on sample.
+
+#+BEGIN_SRC bash :results verbatim
+seq 10000 | sample -r 1% -d 1000 -s 5 | jq -c '{line: .}'
+#+END_SRC
+
+#+RESULTS:
+: {"line":60}
+: {"line":152}
+: {"line":376}
+: {"line":427}
+: {"line":540}
+: {"line":747}
+
+In order to prevent unnecessary computation, try to put sample as early as possible in your pipeline. 
+
+*** 5.2.2 | Extracting Values 
+
+To extract the actual chapter headings from our example earlier, we can pipe the output of grep to cut 
+
+#+BEGIN_SRC bash :results verbatim
+grep -i chapter alice.txt | cut -d ' ' -f3-
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Down the Rabbit-Hole
+The Pool of Tears
+A Caucus-Race and a Long Tale
+The Rabbit Sends in a Little Bill
+Advice from a Caterpillar
+Pig and Pepper
+A Mad Tea-Party
+The Queen's Croquet-Ground
+The Mock Turtle's Story
+The Lobster Quadrille
+Who Stole the Tarts?
+Alice's Evidence
+#+end_example
+
+Here each line that is passed to cut is being split on spaces into many fields, and then the third field to the last is being printed. The total number of fields may be different per input line. With sed we can accomplish the same task in a much more complex manner. 
+
+#+BEGIN_SRC bash :results verbatim
+sed -rn 's/^CHAPTER ([IVXLCDM]{1,})\. (.*)$/\2/p' alice.txt
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Down the Rabbit-Hole
+The Pool of Tears
+A Caucus-Race and a Long Tale
+The Rabbit Sends in a Little Bill
+Advice from a Caterpillar
+Pig and Pepper
+A Mad Tea-Party
+The Queen's Croquet-Ground
+The Mock Turtle's Story
+The Lobster Quadrille
+Who Stole the Tarts?
+Alice's Evidence
+#+end_example
+
+This approach uses a regular expression and a back reference. Here sed also takes over the work done by grep. 
+
+Its worth noting that cut can also split on characters positions. This is useful for when we want to extract the same set of characters per input line:
+
+#+BEGIN_SRC bash :results verbatim
+grep -i chapter alice.txt | cut -c 9-
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+I. Down the Rabbit-Hole
+II. The Pool of Tears
+III. A Caucus-Race and a Long Tale
+IV. The Rabbit Sends in a Little Bill
+V. Advice from a Caterpillar
+VI. Pig and Pepper
+VII. A Mad Tea-Party
+VIII. The Queen's Croquet-Ground
+IX. The Mock Turtle's Story
+X. The Lobster Quadrille
+XI. Who Stole the Tarts?
+XII. Alice's Evidence
+#+end_example
+
+grep also has a great feature that outputs every match onto a separate line 
+
+#+BEGIN_SRC bash :results verbatim
+< alice.txt grep -oE '\w{2,}' | head
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Project
+Gutenberg
+Alice
+Adventures
+in
+Wonderland
+by
+Lewis
+Carroll
+This
+#+end_example
+
+
+What if we wanted to create a data set of all words that start with an a and end with an e? 
+
+#+BEGIN_SRC bash :results verbatim
+< alice.txt tr '[:upper:]' '[:lower:]' | grep -oE '\w{2,}' | grep -E '^a.*e$' | sort | uniq -c | sort -nr | awk '{print $2","$1}' | header -a word, count | head | csvlook
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| word       |   b |
+| ---------- | --- |
+| alice      | 403 |
+| are        |  73 |
+| archive    |  13 |
+| agree      |  11 |
+| anyone     |   5 |
+| alone      |   5 |
+| age        |   4 |
+| applicable |   3 |
+| anywhere   |   3 |
+#+end_example
+
+*** 5.2.3 | Replacing and Deleting Values 
+
+We can use the command line tool tr, which stands for translate, to replace individual characters. 
+
+For example, we can replace spaces with underscores as follows 
+
+#+BEGIN_SRC bash :results verbatim
+echo 'hello world!' | tr ' ' '_'
+#+END_SRC
+
+#+RESULTS:
+: hello_world!
+
+If more than one character needs to be replaced, we can combine that 
+
+#+BEGIN_SRC bash :results verbatim
+echo 'hello world!' | tr ' !' '_?'
+#+END_SRC
+
+#+RESULTS:
+: hello_world?
+
+tr can also be used to delete individual characters by specifying the argument -d 
+
+#+BEGIN_SRC bash :results verbatim
+echo 'hello world!' | tr -d -c '[a-z]'
+#+END_SRC
+
+#+RESULTS:
+: helloworld
+
+We can even use tr to convert our text to uppercase:
+
+#+BEGIN_SRC bash :results verbatim
+echo 'hello world!' | tr '[a-z]' '[A-Z]'
+#+END_SRC
+
+#+RESULTS:
+: HELLO WORLD!
+
+or 
+
+#+BEGIN_SRC bash :results verbatim
+echo 'hello world!' | tr '[:lower:]' '[:upper:]'
+#+END_SRC
+
+#+RESULTS:
+: HELLO WORLD!
+
+The latter command is preferable because it also handles non ASCII characters. 
+
+If we need to operate on more than individual characters, then sed may be useful. Extracting, deleting, and replacing is actually all the same operation in sed. We just specify different regular expressions.
+
+For example, to change a word, remove repeated spaces, and remove leading spaces
+
+#+BEGIN_SRC bash :results verbatim
+echo 'hello        world!' | sed -re 's/hello/bye/;s/\s+/ /g;s/\s+//'
+#+END_SRC
+
+#+RESULTS:
+: byeworld!
+
+The argument -g stands for global, meaning that the same command can be applied more than once on the same line. 
+
+** 5.3 | Working with CSV 
+
