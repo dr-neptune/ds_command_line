@@ -488,3 +488,435 @@ The argument -g stands for global, meaning that the same command can be applied 
 
 ** 5.3 | Working with CSV 
 
+*** 5.3.1 | Bodies and Headers and Columns, Oh My! 
+
+The command line tools we've used to scrub plain text, such as tr and grep cannot always be applied to CSV. These tools have no notion of headers, bodies, and columns. 
+
+In order to lverage command line tools for CSV, we will look at body, header, and cols.
+
+With vosy we can apply any command line tool the body of a CSV file. 
+
+#+BEGIN_SRC bash :results verbatim
+echo -e 'value\n7\n2\n3' | body sort -n 
+#+END_SRC
+
+#+RESULTS:
+: value
+: 2
+: 3
+: 7
+
+It assumes that the header of the CSV file only spans one row. Here is the source code for completeness
+
+#+BEGIN_SRC bash :results verbatim :dir ~/bin
+cat body 
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+#!/usr/bin/env bash
+#
+# body: apply expression to all but the first line.
+# Use multiple times in case the header spans more than one line.
+# 
+# Example usage:
+# $ seq 10 | header -a 'values' | body sort -nr
+# $ seq 10 | header -a 'multi\nline\nheader' | body body body sort -nr
+#
+# From: http://unix.stackexchange.com/a/11859
+#
+# See also: header (https://github.com/jeroenjanssens/command-line-tools-for-data-science)
+IFS= read -r header
+printf '%s\n' "$header"
+eval $@
+#+end_example
+
+It works like this: 
+
+- Take one line from standard in and store it as a variable named $header
+- Print out the header
+- Execute all command line arguments passed to body on the remaining data in standard in 
+
+Here is another example. Image we want to count the lines of the following csv:
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a count
+#+END_SRC
+
+#+RESULTS:
+: count
+: 1
+: 2
+: 3
+: 4
+: 5
+
+with wc -l we can count the number of all lines
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a count | wc -l
+#+END_SRC
+
+#+RESULTS:
+: 6
+
+and if we only want to consider the lines in the body, we simply add body 
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a count | body wc -l
+#+END_SRC
+
+#+RESULTS:
+: count
+: 5
+
+header allows us, as the name implies, the manipulate the header of a CSV file. 
+
+The source code is as follows :
+
+#+BEGIN_SRC bash :results verbatim :dir ~/bin
+cat header
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+#!/usr/bin/env bash
+# header: add, replace, and delete header lines.
+# 
+# Example usage:
+# $ seq 10 | header -a 'values'
+# $ seq 10 | header -a 'VALUES' | header -e 'tr "[:upper:]" "[:lower:]"'
+# $ seq 10 | header -a 'values' | header -d
+# $ seq 10 | header -a 'multi\nline' | header -n 2 -e "paste -sd_"
+#
+# See also: body (https://github.com/jeroenjanssens/command-line-tools-for-data-science)
+#
+# Author: http://jeroenjanssens.com
+
+usage () {
+cat << EOF
+header: add, replace, and delete header lines.
+
+usage: header OPTIONS
+
+OPTIONS:
+  -n      Number of lines to consider as header [default: 1]
+  -a      Add header
+  -r      Replace header
+  -e      Apply expression to header
+  -d      Delete header
+  -h      Show this message
+
+Example usage:
+  $ seq 10 | header -a 'values'
+  $ seq 10 | header -a 'VALUES' | header -e 'tr "[:upper:]" "[:lower:]"'
+  $ seq 10 | header -a 'values' | header -d
+  $ seq 10 | header -a 'multi\nline' | header -n 2 -e "paste -sd_"
+
+See also: body
+EOF
+}
+
+get_header () {
+	for i in $(seq $NUMROWS); do
+		IFS= read -r LINE
+		OLDHEADER="${OLDHEADER}${LINE}\n"
+	done
+}
+
+print_header () {
+	echo -ne "$1"
+}
+
+print_body () {
+	cat
+}
+
+OLDHEADER=
+NUMROWS=1
+
+while getopts "dn:ha:r:e:" OPTION
+do
+	case $OPTION in
+		n)
+			NUMROWS=$OPTARG
+			;;
+		a)
+			print_header "$OPTARG\n"
+			print_body
+			exit 0
+			;;
+		d)
+			get_header
+			print_body
+			exit 0
+			;;
+		r)
+			get_header
+			print_header "$OPTARG\n"
+			print_body
+			exit 0
+			;;
+		e)
+			get_header
+			print_header "$(echo -ne $OLDHEADER | eval $OPTARG)\n"
+			print_body
+			exit 0
+			;;
+		h)
+			usage
+			exit 0
+			;;
+	esac
+done
+
+get_header
+print_header "${OLDHEADER}"
+#+end_example
+
+If no argument is provided, the header of the CSV file is printed 
+
+#+BEGIN_SRC bash :results verbatim :dir ~/Desktop/log/ds_cmd/
+chmod u+x *.csv
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | header
+#+END_SRC
+
+#+RESULTS:
+: sepal_length,sepal_width,petal_length,petal_width,species
+
+This is the same as head -n 1. If the header spans more than one row we can use -n num_rows 
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a count
+#+END_SRC
+
+#+RESULTS:
+: count
+: 1
+: 2
+: 3
+: 4
+: 5
+
+This is equivalent to echo "count" | cat - <(seq 5)
+
+Deleting a header is done with the -d argument 
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | header -d | head
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+5.1,3.5,1.4,0.2,setosa
+4.9,3,1.4,0.2,setosa
+4.7,3.2,1.3,0.2,setosa
+4.6,3.1,1.5,0.2,setosa
+5,3.6,1.4,0.2,setosa
+5.4,3.9,1.7,0.4,setosa
+4.6,3.4,1.4,0.3,setosa
+5,3.4,1.5,0.2,setosa
+4.4,2.9,1.4,0.2,setosa
+4.9,3.1,1.5,0.1,setosa
+#+end_example
+
+This is similar to tail -n 2. Replacing a header (deleting the first row and adding one) is accomplished by specifying -r. 
+
+Here we combine it with body
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a line | body wc -l | header -r count
+#+END_SRC
+
+#+RESULTS:
+: count
+: 5
+
+We can also apply a command to just the header, similar to what the body command line tool does to the body
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a line | header -e "tr '[a-z]' '[A-Z]'"
+#+END_SRC
+
+#+RESULTS:
+: LINE
+: 1
+: 2
+: 3
+: 4
+: 5
+
+
+The next command line tool is called cols, which is similar to header and body in that it allows you to apply certain commands to only a subset of the columns. The code is as follows:
+
+#+BEGIN_SRC bash :results verbatim :dir ~/bin/
+cat cols
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+#!/usr/bin/env bash
+# cols: apply a command to a subset of the columns and merge back with the remaining columns.
+#
+# Assumes that the input data is comma-delimited and that it has a header.
+# Depends on csvcut, which is part of csvkit: http://csvkit.readthedocs.org
+# 
+# Example usage 1: reverse sort column 'a'
+# $ echo 'a,b\n1,2\n3,4\n5,6' | cols -c a body sort -nr
+#
+# Example usage 2: apply PCA (using tapkee) to all numerical features (-C selects all but the specified columns) of the Iris data set:
+# $ < iris.csv cols -C species body tapkee --method pca | header -r x,y,species
+# 
+# See also: header and body (https://github.com/jeroenjanssens/command-line-tools-for-data-science)
+#
+# Author: http://jeroenjanssens.com
+
+ARG="$1"
+ARG_INV="$(tr cC Cc <<< ${ARG})"
+shift
+COLUMNS="$1"
+shift
+EXPR="$@"
+
+finish() {
+	rm -f $OTHER_COLUMNS
+}
+trap finish EXIT
+
+if [ -z "$TMPDIR" ]; then
+    TMPDIR=/tmp
+fi
+OTHER_COLUMNS=$(mktemp ${TMPDIR}/cols-XXXXXXXX)
+
+tee $OTHER_COLUMNS | csvcut $ARG "$COLUMNS" | eval ${EXPR} | paste -d, - <(csvcut ${ARG_INV} "$COLUMNS" $OTHER_COLUMNS)
+#+end_example
+
+If we wanted to uppercase the values in the day column in our dataset, we could use a combination of cols and body
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | cols -c sepal_length,sepal_width | body "tr '[a-z]' '[A-Z]'" | head -n 5 | csvlook -I
+#+END_SRC
+
+#+RESULTS:
+: | a | petal_length | petal_width | species |
+: | - | ------------ | ----------- | ------- |
+: |   | 1.4          | 0.2         | SETOSA  |
+: |   | 1.4          | 0.2         | SETOSA  |
+: |   | 1.3          | 0.2         | SETOSA  |
+: |   | 1.5          | 0.2         | SETOSA  |
+
+While it is generally preferable to use command line tools which are specifically made for CSV data, body header and cols allow us to apply the classic command line tools to CSV files if needed.
+
+*** 5.3.2 | Performing SQL Queries on CSV
+
+The command line tool csvsql allows us to execute SQL queries directly on CSV files. As discussed previously, if we wish to export code from a database using SQL to csv we can use sql2csv for this. When we can it is best to do sql to csv as opposed to performing a sql query on a csv file. Not only is sql on csv slower, but there is a possibility that the column types are not properly inferred from the CSV data.
+
+The basic command is this:
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | header -a value | csvsql --query "SELECT SUM(value) AS sum FROM stdin"
+#+END_SRC
+
+#+RESULTS:
+: sum
+: 15.0
+
+If we wish to pass input to csvsql, then the table is named stdin. Generally csvsql uses the SQLite dialect. 
+
+** 5.4 | Working with XML/HTML and JSON 
+
+The most common obtained data formats are plain text, csv, json, and html/xml. 
+
+CSV is inherently in tabular form, but json and html/xml data can have a deeply nested structure. 
+
+Sometimes we can get away with applying the classic tools to structured data. For example, by treating the JSON data below as plain text, we can change attributes
+
+#+BEGIN_SRC bash :results verbatim
+sed -e 's/"username":/"yousername":/g' users.json | fold | head -n 3
+#+END_SRC
+
+#+RESULTS:
+: [
+:   {
+:     "id": 1,
+
+Like many other command line tools, sed doesn't make use of the structure of the data. A better option is to use a tool that takes account of the structure (like jq) or first convert the data to a tabular format such as CSV and then apply the appropriate tool. 
+
+We're going to demonstrate converting XML/HTML and JSON to CSV through a use case. The tools we will use are curl, scrape, xml2json, jq, and jsoncsv. 
+
+Wikipedia holds a wealth of information. Much of it is ordered in tables, which can be regarded as data sets. Lets imagine we are interested in the data [[https://en.wikipedia.org/wiki/List_of_countries_and_territories_by_border/area_ratio][List of Countries and Territories by Border / Area ratio]]. 
+
+Our first step is to download the html file using curl:
+
+#+BEGIN_SRC bash :results verbatim
+curl -sL 'https://en.wikipedia.org/wiki/List_of_countries_and_territories_by_border/area_ratio' > wiki.html
+#+END_SRC
+
+#+RESULTS:
+
+The option -s causes curl to be silent. 
+
+Let's see how the first 10 lines look 
+
+#+BEGIN_SRC bash :results verbatim
+head -n 10 wiki.html | cut -c1-79
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<title>List of countries and territories by border/area ratio - Wikipedia</titl
+<script>document.documentElement.className=document.documentElement.className.r
+"September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb
+"wgCentralAuthMobileDomain":!1,"wgEditSubmitButtonLabelPublish":!0};RLSTATE={"e
+"ext.gadget.refToolbar","ext.gadget.extra-toolbar-buttons","ext.gadget.switcher
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.implement("user.tokens@0
+#+end_example
+
+Using the developer tools inside the browser, we can determine the root HTML element that we want is in a <table> tag. This allows us to look at the part we want with grep. 
+
+#+BEGIN_SRC bash :results verbatim
+< wiki.html grep wikitable -A 21
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+<table class="wikitable sortable">
+<tbody><tr>
+<th>Rank</th>
+<th>Country or territory</th>
+<th>Total length of land borders (km)</th>
+<th>Total surface area (km²)</th>
+<th>Border/area ratio (km/km²)
+</th></tr>
+<tr>
+<td>1
+</td>
+<td>Vatican City
+</td>
+<td>3.2
+</td>
+<td>0.44
+</td>
+<td>7.2727273
+</td></tr>
+<tr>
+<td>2
+</td>
+#+end_example
+
+The next step is to extract the necessary elements from the HTML file. For this we use the scrape tool:
+
+#+BEGIN_SRC bash :results verbatim
+< wiki.html scrape -b -e 'table.wikitable > tr:not(:first-child)' > table.html
+#+END_SRC
+
+#+RESULTS:
