@@ -913,10 +913,467 @@ Using the developer tools inside the browser, we can determine the root HTML ele
 </td>
 #+end_example
 
-The next step is to extract the necessary elements from the HTML file. For this we use the scrape tool:
+The next step is to extract the necessary elements from the HTML file. The scrape tool from the book didn't quite work, so this is my attempt at a work around using most of [[https://www.joyofdata.de/blog/using-linux-shell-web-scraping/][Web Scraping with Shell]]. 
 
 #+BEGIN_SRC bash :results verbatim
-< wiki.html scrape -b -e 'table.wikitable > tr:not(:first-child)' > table.html
+cat wiki.html | hxnormalize -x | hxselect -i "table.wikitable" > table.html
 #+END_SRC
 
 #+RESULTS:
+
+Let's look at the output
+
+#+BEGIN_SRC bash :results verbatim
+cat table.html | head -n 21
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+<table class="wikitable sortable">
+              <tbody>
+                <tr>
+                  <th>Rank</th>
+
+                  <th>Country or territory</th>
+
+                  <th>Total length of land borders (km)</th>
+
+                  <th>Total surface area (km²)</th>
+
+                  <th>Border/area ratio (km/km²)</th>
+                </tr>
+
+                <tr>
+                  <td>1</td>
+
+                  <td>Vatican City</td>
+
+                  <td>3.2</td>
+
+#+end_example
+
+Now let's try to convert our HTML to JSON with the xml2json tool. 
+
+#+BEGIN_SRC bash :results verbatim
+xml2json < table.html > table.json
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cat table.json | jq '.' | head -n 45
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+{
+  "table": {
+    "class": "wikitable sortable",
+    "tbody": {
+      "tr": [
+        {
+          "th": [
+            {
+              "$t": "Rank"
+            },
+            {
+              "$t": "Country or territory"
+            },
+            {
+              "$t": "Total length of land borders (km)"
+            },
+            {
+              "$t": "Total surface area (km²)"
+            },
+            {
+              "$t": "Border/area ratio (km/km²)"
+            }
+          ]
+        },
+        {
+          "td": [
+            {
+              "$t": "1"
+            },
+            {
+              "$t": "Vatican City"
+            },
+            {
+              "$t": "3.2"
+            },
+            {
+              "$t": "0.44"
+            },
+            {
+              "$t": "7.2727273"
+            }
+          ]
+        },
+        {
+          "td": [
+#+end_example
+
+One of the reasons for converting html to json is to take advantage of the jq tool which operates on JSON data. 
+
+The following command extracts certain parts of the json data and reshapes it into a form that we can work with
+
+#+BEGIN_SRC bash :results verbatim
+cat table.json | jq -c '.table.tbody.tr[] | {rank: .td[0] | .["$t"], country: .td[1] | .["$t"], border: .td[2] | .["$t"], surface: .td[3] | .["$t"], ratio: .td[4] | .["$t"]}' > countries.json
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cat countries.json | jq -c '.' | head -n 20
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+{"rank":null,"country":null,"border":null,"surface":null,"ratio":null}
+{"rank":"1","country":"Vatican City","border":"3.2","surface":"0.44","ratio":"7.2727273"}
+{"rank":"2","country":"Monaco","border":"4.4","surface":"2","ratio":"2.2000000"}
+{"rank":"3","country":"San Marino","border":"39","surface":"61","ratio":"0.6393443"}
+{"rank":"4","country":"Liechtenstein","border":"76","surface":"160","ratio":"0.4750000"}
+{"rank":"5","country":"Sint Maarten (Netherlands)","border":"10.2","surface":"34","ratio":"0.3000000"}
+{"rank":"6","country":"Andorra","border":"120.3","surface":"468","ratio":"0.2570513"}
+{"rank":"7","country":"Gibraltar (United Kingdom)","border":"1.2","surface":"6","ratio":"0.2000000"}
+{"rank":"8","country":"Saint Martin (France)","border":"10.2","surface":"54","ratio":"0.1888889"}
+{"rank":"9","country":"Luxembourg","border":"359","surface":"2586","ratio":"0.1388244"}
+{"rank":"10","country":"Palestinian territories","border":"466","surface":"6220","ratio":"0.0749196"}
+{"rank":"11","country":"Brunei","border":"381","surface":"5765","ratio":"0.0660885"}
+{"rank":"12","country":"Slovenia","border":"1334","surface":"20273","ratio":"0.0658018"}
+{"rank":"13","country":"The Gambia","border":"740","surface":"11295","ratio":"0.0655157"}
+{"rank":"14","country":"Kosovo","border":"701","surface":"10887","ratio":"0.0643887"}
+{"rank":"15","country":"Israel","border":"1017","surface":"20770","ratio":"0.0489649"}
+{"rank":"16","country":"Belgium","border":"1385","surface":"30528","ratio":"0.0453682"}
+{"rank":"17","country":"Montenegro","border":"625","surface":"13812","ratio":"0.0452505"}
+{"rank":"18","country":"Switzerland","border":"1852","surface":"41284","ratio":"0.0448600"}
+{"rank":"19","country":"Lebanon","border":"454","surface":"10452","ratio":"0.0434367"}
+#+end_example
+
+JSON is a popular data format with many advantages, but suppose we wish to have our data in csv format. The tools json2csv is able to convert json to csv. I wasn't able to get the suggested tool to work, so here is an alternative attempt from [[https://www.npmjs.com/package/json2csv][json2csv]].
+
+#+BEGIN_SRC bash :results verbatim
+cat countries.json | json2csv > countries.csv
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cat countries.csv | head -n 11 | csvlook
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| rank | country                    | border |  surface |  ratio |
+| ---- | -------------------------- | ------ | -------- | ------ |
+|    1 | Vatican City               |    3.2 |     0.44 | 7.273… |
+|    2 | Monaco                     |    4.4 |     2.00 | 2.200… |
+|    3 | San Marino                 |   39.0 |    61.00 | 0.639… |
+|    4 | Liechtenstein              |   76.0 |   160.00 | 0.475… |
+|    5 | Sint Maarten (Netherlands) |   10.2 |    34.00 | 0.300… |
+|    6 | Andorra                    |  120.3 |   468.00 | 0.257… |
+|    7 | Gibraltar (United Kingdom) |    1.2 |     6.00 | 0.200… |
+|    8 | Saint Martin (France)      |   10.2 |    54.00 | 0.189… |
+|    9 | Luxembourg                 |  359.0 | 2,586.00 | 0.139… |
+|   10 | Palestinian territories    |  466.0 | 6,220.00 | 0.075… |
+#+end_example
+
+The data is now in a form that we can work with. Now (if we so choose) we can combine all of the commands into one.
+
+** 5.5 | Common Scrub Operations for CSV 
+
+*** 5.5.1 | Extracting and Reordering Columns 
+
+Columns can be extracted and reordered using the command line tool csvcut. 
+
+For example, to keep only the columns in the iris data set which contain numerical values and reorder the middle two columns we could do the following: 
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvcut -c sepal_length,petal_length,sepal_width,petal_width | head -n 5 | csvlook
+#+END_SRC
+
+#+RESULTS:
+: | sepal_length | petal_length | sepal_width | petal_width |
+: | ------------ | ------------ | ----------- | ----------- |
+: |   2001-05-01 |   2001-01-04 |         3.5 |         0.2 |
+: |   2001-04-09 |   2001-01-04 |         3.0 |         0.2 |
+: |   2001-04-07 |   2001-01-03 |         3.2 |         0.2 |
+: |   2001-04-06 |   2001-01-05 |         3.1 |         0.2 |
+
+Alternatively, we could specify the columns we wish to leave out with -C, which stands for complement 
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvcut -C sepal_width | head -n 5 | csvlook
+#+END_SRC
+
+#+RESULTS:
+: | sepal_length | petal_length | petal_width | species |
+: | ------------ | ------------ | ----------- | ------- |
+: |   2001-05-01 |   2001-01-04 |         0.2 | setosa  |
+: |   2001-04-09 |   2001-01-04 |         0.2 | setosa  |
+: |   2001-04-07 |   2001-01-03 |         0.2 | setosa  |
+: |   2001-04-06 |   2001-01-05 |         0.2 | setosa  |
+
+Instead of the column names, we can also specify the indices of the columns, which start at 1. 
+
+Suppose we wish to select only the odd columns:
+
+#+BEGIN_SRC bash :results verbatim
+echo 'a,b,c,d,e,f,g,h,i\n1,2,3,4,5,6,7,8,9' | csvcut -c $(seq 1 2 9 | paste -sd,)
+#+END_SRC
+
+#+RESULTS:
+: a,c,e,g,i\n1
+
+If you're certain that there are no commas in any of the values, we can also use cut to extract columns. 
+
+Be aware that cut doesn't reorder columns, as shown below: 
+
+#+BEGIN_SRC bash :results verbatim
+echo 'a,b,c,d,e,f,g,h,i\n1,2,3,4,5,6,7,8,9' | cut -d, -f 5,1,3
+#+END_SRC
+
+#+RESULTS:
+: a,c,e
+
+For completeness, let's also take a look at the SQL approach for extracting and reordering the numerical columns of the Iris dataset
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvsql --query "SELECT sepal_length, petal_length, sepal_width, petal_width, species FROM stdin WHERE species = 'setosa'" | head -n 5 | csvlook
+#+END_SRC
+
+#+RESULTS:
+: | sepal_length | petal_length | sepal_width | petal_width | species |
+: | ------------ | ------------ | ----------- | ----------- | ------- |
+: |   2001-05-01 |   2001-01-04 |         3.5 |         0.2 | setosa  |
+: |   2001-04-09 |   2001-01-04 |         3.0 |         0.2 | setosa  |
+: |   2001-04-07 |   2001-01-03 |         3.2 |         0.2 | setosa  |
+: |   2001-04-06 |   2001-01-05 |         3.1 |         0.2 | setosa  |
+
+*** 5.5.2 | Filtering Lines 
+
+Suppose we wish to filter on values in a certain column only. We can either use csvgrep, awk, or csvsql. 
+
+For example, suppose we wanted to remove flowers of the species setosa
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvgrep -c species -i -r "setosa" | csvlook
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| sepal_length | sepal_width | petal_length | petal_width | species    |
+| ------------ | ----------- | ------------ | ----------- | ---------- |
+|          7.0 |         3.2 |          4.7 |         1.4 | versicolor |
+|          6.4 |         3.2 |          4.5 |         1.5 | versicolor |
+|          6.9 |         3.1 |          4.9 |         1.5 | versicolor |
+|          5.5 |         2.3 |          4.0 |         1.3 | versicolor |
+|          6.5 |         2.8 |          4.6 |         1.5 | versicolor |
+|          5.7 |         2.8 |          4.5 |         1.3 | versicolor |
+|          6.3 |         3.3 |          4.7 |         1.6 | versicolor |
+|          4.9 |         2.4 |          3.3 |         1.0 | versicolor |
+|          6.6 |         2.9 |          4.6 |         1.3 | versicolor |
+|          5.2 |         2.7 |          3.9 |         1.4 | versicolor |
+|          5.0 |         2.0 |          3.5 |         1.0 | versicolor |
+|          5.9 |         3.0 |          4.2 |         1.5 | versicolor |
+|          6.0 |         2.2 |          4.0 |         1.0 | versicolor |
+|          6.1 |         2.9 |          4.7 |         1.4 | versicolor |
+|          5.6 |         2.9 |          3.6 |         1.3 | versicolor |
+|          6.7 |         3.1 |          4.4 |         1.4 | versicolor |
+|          5.6 |         3.0 |          4.5 |         1.5 | versicolor |
+|          5.8 |         2.7 |          4.1 |         1.0 | versicolor |
+|          6.2 |         2.2 |          4.5 |         1.5 | versicolor |
+|          5.6 |         2.5 |          3.9 |         1.1 | versicolor |
+|          5.9 |         3.2 |          4.8 |         1.8 | versicolor |
+|          6.1 |         2.8 |          4.0 |         1.3 | versicolor |
+|          6.3 |         2.5 |          4.9 |         1.5 | versicolor |
+|          6.1 |         2.8 |          4.7 |         1.2 | versicolor |
+|          6.4 |         2.9 |          4.3 |         1.3 | versicolor |
+|          6.6 |         3.0 |          4.4 |         1.4 | versicolor |
+|          6.8 |         2.8 |          4.8 |         1.4 | versicolor |
+|          6.7 |         3.0 |          5.0 |         1.7 | versicolor |
+|          6.0 |         2.9 |          4.5 |         1.5 | versicolor |
+|          5.7 |         2.6 |          3.5 |         1.0 | versicolor |
+|          5.5 |         2.4 |          3.8 |         1.1 | versicolor |
+|          5.5 |         2.4 |          3.7 |         1.0 | versicolor |
+|          5.8 |         2.7 |          3.9 |         1.2 | versicolor |
+|          6.0 |         2.7 |          5.1 |         1.6 | versicolor |
+|          5.4 |         3.0 |          4.5 |         1.5 | versicolor |
+|          6.0 |         3.4 |          4.5 |         1.6 | versicolor |
+|          6.7 |         3.1 |          4.7 |         1.5 | versicolor |
+|          6.3 |         2.3 |          4.4 |         1.3 | versicolor |
+|          5.6 |         3.0 |          4.1 |         1.3 | versicolor |
+|          5.5 |         2.5 |          4.0 |         1.3 | versicolor |
+|          5.5 |         2.6 |          4.4 |         1.2 | versicolor |
+|          6.1 |         3.0 |          4.6 |         1.4 | versicolor |
+|          5.8 |         2.6 |          4.0 |         1.2 | versicolor |
+|          5.0 |         2.3 |          3.3 |         1.0 | versicolor |
+|          5.6 |         2.7 |          4.2 |         1.3 | versicolor |
+|          5.7 |         3.0 |          4.2 |         1.2 | versicolor |
+|          5.7 |         2.9 |          4.2 |         1.3 | versicolor |
+|          6.2 |         2.9 |          4.3 |         1.3 | versicolor |
+|          5.1 |         2.5 |          3.0 |         1.1 | versicolor |
+|          5.7 |         2.8 |          4.1 |         1.3 | versicolor |
+|          6.3 |         3.3 |          6.0 |         2.5 | virginica  |
+|          5.8 |         2.7 |          5.1 |         1.9 | virginica  |
+|          7.1 |         3.0 |          5.9 |         2.1 | virginica  |
+|          6.3 |         2.9 |          5.6 |         1.8 | virginica  |
+|          6.5 |         3.0 |          5.8 |         2.2 | virginica  |
+|          7.6 |         3.0 |          6.6 |         2.1 | virginica  |
+|          4.9 |         2.5 |          4.5 |         1.7 | virginica  |
+|          7.3 |         2.9 |          6.3 |         1.8 | virginica  |
+|          6.7 |         2.5 |          5.8 |         1.8 | virginica  |
+|          7.2 |         3.6 |          6.1 |         2.5 | virginica  |
+|          6.5 |         3.2 |          5.1 |         2.0 | virginica  |
+|          6.4 |         2.7 |          5.3 |         1.9 | virginica  |
+|          6.8 |         3.0 |          5.5 |         2.1 | virginica  |
+|          5.7 |         2.5 |          5.0 |         2.0 | virginica  |
+|          5.8 |         2.8 |          5.1 |         2.4 | virginica  |
+|          6.4 |         3.2 |          5.3 |         2.3 | virginica  |
+|          6.5 |         3.0 |          5.5 |         1.8 | virginica  |
+|          7.7 |         3.8 |          6.7 |         2.2 | virginica  |
+|          7.7 |         2.6 |          6.9 |         2.3 | virginica  |
+|          6.0 |         2.2 |          5.0 |         1.5 | virginica  |
+|          6.9 |         3.2 |          5.7 |         2.3 | virginica  |
+|          5.6 |         2.8 |          4.9 |         2.0 | virginica  |
+|          7.7 |         2.8 |          6.7 |         2.0 | virginica  |
+|          6.3 |         2.7 |          4.9 |         1.8 | virginica  |
+|          6.7 |         3.3 |          5.7 |         2.1 | virginica  |
+|          7.2 |         3.2 |          6.0 |         1.8 | virginica  |
+|          6.2 |         2.8 |          4.8 |         1.8 | virginica  |
+|          6.1 |         3.0 |          4.9 |         1.8 | virginica  |
+|          6.4 |         2.8 |          5.6 |         2.1 | virginica  |
+|          7.2 |         3.0 |          5.8 |         1.6 | virginica  |
+|          7.4 |         2.8 |          6.1 |         1.9 | virginica  |
+|          7.9 |         3.8 |          6.4 |         2.0 | virginica  |
+|          6.4 |         2.8 |          5.6 |         2.2 | virginica  |
+|          6.3 |         2.8 |          5.1 |         1.5 | virginica  |
+|          6.1 |         2.6 |          5.6 |         1.4 | virginica  |
+|          7.7 |         3.0 |          6.1 |         2.3 | virginica  |
+|          6.3 |         3.4 |          5.6 |         2.4 | virginica  |
+|          6.4 |         3.1 |          5.5 |         1.8 | virginica  |
+|          6.0 |         3.0 |          4.8 |         1.8 | virginica  |
+|          6.9 |         3.1 |          5.4 |         2.1 | virginica  |
+|          6.7 |         3.1 |          5.6 |         2.4 | virginica  |
+|          6.9 |         3.1 |          5.1 |         2.3 | virginica  |
+|          5.8 |         2.7 |          5.1 |         1.9 | virginica  |
+|          6.8 |         3.2 |          5.9 |         2.3 | virginica  |
+|          6.7 |         3.3 |          5.7 |         2.5 | virginica  |
+|          6.7 |         3.0 |          5.2 |         2.3 | virginica  |
+|          6.3 |         2.5 |          5.0 |         1.9 | virginica  |
+|          6.5 |         3.0 |          5.2 |         2.0 | virginica  |
+|          6.2 |         3.4 |          5.4 |         2.3 | virginica  |
+|          5.9 |         3.0 |          5.1 |         1.8 | virginica  |
+#+end_example
+
+Both awk and csvsql can also do numerical comparisons. 
+
+For example, to get all the flowers with sepal_length > 6 
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | awk -F, '($1 > 6.0)' | csvlook -I
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| sepal_length | sepal_width | petal_length | petal_width | species    |
+| ------------ | ----------- | ------------ | ----------- | ---------- |
+| 7            | 3.2         | 4.7          | 1.4         | versicolor |
+| 6.4          | 3.2         | 4.5          | 1.5         | versicolor |
+| 6.9          | 3.1         | 4.9          | 1.5         | versicolor |
+| 6.5          | 2.8         | 4.6          | 1.5         | versicolor |
+| 6.3          | 3.3         | 4.7          | 1.6         | versicolor |
+| 6.6          | 2.9         | 4.6          | 1.3         | versicolor |
+| 6.1          | 2.9         | 4.7          | 1.4         | versicolor |
+| 6.7          | 3.1         | 4.4          | 1.4         | versicolor |
+| 6.2          | 2.2         | 4.5          | 1.5         | versicolor |
+| 6.1          | 2.8         | 4            | 1.3         | versicolor |
+| 6.3          | 2.5         | 4.9          | 1.5         | versicolor |
+| 6.1          | 2.8         | 4.7          | 1.2         | versicolor |
+| 6.4          | 2.9         | 4.3          | 1.3         | versicolor |
+| 6.6          | 3           | 4.4          | 1.4         | versicolor |
+| 6.8          | 2.8         | 4.8          | 1.4         | versicolor |
+| 6.7          | 3           | 5            | 1.7         | versicolor |
+| 6.7          | 3.1         | 4.7          | 1.5         | versicolor |
+| 6.3          | 2.3         | 4.4          | 1.3         | versicolor |
+| 6.1          | 3           | 4.6          | 1.4         | versicolor |
+| 6.2          | 2.9         | 4.3          | 1.3         | versicolor |
+| 6.3          | 3.3         | 6            | 2.5         | virginica  |
+| 7.1          | 3           | 5.9          | 2.1         | virginica  |
+| 6.3          | 2.9         | 5.6          | 1.8         | virginica  |
+| 6.5          | 3           | 5.8          | 2.2         | virginica  |
+| 7.6          | 3           | 6.6          | 2.1         | virginica  |
+| 7.3          | 2.9         | 6.3          | 1.8         | virginica  |
+| 6.7          | 2.5         | 5.8          | 1.8         | virginica  |
+| 7.2          | 3.6         | 6.1          | 2.5         | virginica  |
+| 6.5          | 3.2         | 5.1          | 2           | virginica  |
+| 6.4          | 2.7         | 5.3          | 1.9         | virginica  |
+| 6.8          | 3           | 5.5          | 2.1         | virginica  |
+| 6.4          | 3.2         | 5.3          | 2.3         | virginica  |
+| 6.5          | 3           | 5.5          | 1.8         | virginica  |
+| 7.7          | 3.8         | 6.7          | 2.2         | virginica  |
+| 7.7          | 2.6         | 6.9          | 2.3         | virginica  |
+| 6.9          | 3.2         | 5.7          | 2.3         | virginica  |
+| 7.7          | 2.8         | 6.7          | 2           | virginica  |
+| 6.3          | 2.7         | 4.9          | 1.8         | virginica  |
+| 6.7          | 3.3         | 5.7          | 2.1         | virginica  |
+| 7.2          | 3.2         | 6            | 1.8         | virginica  |
+| 6.2          | 2.8         | 4.8          | 1.8         | virginica  |
+| 6.1          | 3           | 4.9          | 1.8         | virginica  |
+| 6.4          | 2.8         | 5.6          | 2.1         | virginica  |
+| 7.2          | 3           | 5.8          | 1.6         | virginica  |
+| 7.4          | 2.8         | 6.1          | 1.9         | virginica  |
+| 7.9          | 3.8         | 6.4          | 2           | virginica  |
+| 6.4          | 2.8         | 5.6          | 2.2         | virginica  |
+| 6.3          | 2.8         | 5.1          | 1.5         | virginica  |
+| 6.1          | 2.6         | 5.6          | 1.4         | virginica  |
+| 7.7          | 3           | 6.1          | 2.3         | virginica  |
+| 6.3          | 3.4         | 5.6          | 2.4         | virginica  |
+| 6.4          | 3.1         | 5.5          | 1.8         | virginica  |
+| 6.9          | 3.1         | 5.4          | 2.1         | virginica  |
+| 6.7          | 3.1         | 5.6          | 2.4         | virginica  |
+| 6.9          | 3.1         | 5.1          | 2.3         | virginica  |
+| 6.8          | 3.2         | 5.9          | 2.3         | virginica  |
+| 6.7          | 3.3         | 5.7          | 2.5         | virginica  |
+| 6.7          | 3           | 5.2          | 2.3         | virginica  |
+| 6.3          | 2.5         | 5            | 1.9         | virginica  |
+| 6.5          | 3           | 5.2          | 2           | virginica  |
+| 6.2          | 3.4         | 5.4          | 2.3         | virginica  |
+#+end_example
+
+The csvsql solution is more verbose but also more robust as it uses the names of the columns instead of their indexes
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvsql --query "SELECT * FROM stdin WHERE sepal_length > 6 AND species LIKE 'versi%'" | csvlook -I
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| sepal_length | sepal_width | petal_length | petal_width | species    |
+| ------------ | ----------- | ------------ | ----------- | ---------- |
+| 7.0          | 3.2         | 4.7          | 1.4         | versicolor |
+| 6.4          | 3.2         | 4.5          | 1.5         | versicolor |
+| 6.9          | 3.1         | 4.9          | 1.5         | versicolor |
+| 6.5          | 2.8         | 4.6          | 1.5         | versicolor |
+| 6.3          | 3.3         | 4.7          | 1.6         | versicolor |
+| 6.6          | 2.9         | 4.6          | 1.3         | versicolor |
+| 6.1          | 2.9         | 4.7          | 1.4         | versicolor |
+| 6.7          | 3.1         | 4.4          | 1.4         | versicolor |
+| 6.2          | 2.2         | 4.5          | 1.5         | versicolor |
+| 6.1          | 2.8         | 4.0          | 1.3         | versicolor |
+| 6.3          | 2.5         | 4.9          | 1.5         | versicolor |
+| 6.1          | 2.8         | 4.7          | 1.2         | versicolor |
+| 6.4          | 2.9         | 4.3          | 1.3         | versicolor |
+| 6.6          | 3.0         | 4.4          | 1.4         | versicolor |
+| 6.8          | 2.8         | 4.8          | 1.4         | versicolor |
+| 6.7          | 3.0         | 5.0          | 1.7         | versicolor |
+| 6.7          | 3.1         | 4.7          | 1.5         | versicolor |
+| 6.3          | 2.3         | 4.4          | 1.3         | versicolor |
+| 6.1          | 3.0         | 4.6          | 1.4         | versicolor |
+| 6.2          | 2.9         | 4.3          | 1.3         | versicolor |
+#+end_example
+
+*** 5.5.3 | Merging Columns 
+
+Merging columns is useful
