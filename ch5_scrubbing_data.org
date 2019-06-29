@@ -1731,5 +1731,5 @@ csvsql --query "SELECT i.sepal_length, i.sepal_width, i.species, m.usda_id FROM 
 Molinaro, Anthony. 2005. SQL Cookbook. O’Reilly Media.
 
 Goyvaerts, Jan, and Steven Levithan. 2012. Regular Expressions Cookbook. 2nd Ed. O’Reilly Media.
-
-Dougherty, Dale, and Arnold Robbins. 1997. Sed & Awk. 2nd Ed. O’Reilly Media.
+D
+ougherty, Dale, and Arnold Robbins. 1997. Sed & Awk. 2nd Ed. O’Reilly Media.

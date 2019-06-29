@@ -1,0 +1,97 @@
+
+* Chapter 6 | Managing Your Data Workflow 
+  
+** 6.1 | Overview 
+
+This chapter focuses on using Drake to:
+
+- Define the workflow through a Drakefile
+- Think about workflow in terms of input and output dependencies
+- Build specific targets
+
+
+** 6.4 | Obtain Top Ebooks from Project Gutenberg
+
+Suppose we are interested in the top five downloads on project gutenberg,
+
+#+BEGIN_SRC bash :results verbatim
+curl -s 'http://www.gutenberg.org/browse/scores/top' | 
+grep -E '^<li>' |
+head -n 5 | 
+sed -E "s/.*ebooks\/([0-9]+).*/\\1/" > top-5
+#+END_SRC
+
+#+RESULTS:
+
+This command: 
+
+- Downloads the html
+- Extracts the list items
+- Keeps only the top 5 items
+- Saves e-book IDs to top-5 
+
+#+BEGIN_SRC bash :results verbatim
+cat top-5 
+#+END_SRC
+
+#+RESULTS:
+: 27438
+: 21658
+: 33404
+: 11
+: 84
+
+** 6.5 | Every Workflow Starts with a Single Step
+
+In this section, we'll convert the process above into a Drake workflow. A workflow is just a text file. Usually we would name this file Drakefile because Drake uses that file if no other file is specified. 
+
+#+BEGIN_SRC bash :results verbatim :tangle Drakefile
+top-5 <- [-timecheck]
+    curl -s 'http://www.gutenberg.org/browse/scores/top' | 
+    grep -E '^<li>' |
+    head -n 5 | 
+    sed -E "s/.*ebooks\/([0-9]+).*/\\1/" > top-5
+#+END_SRC
+
+The square brackets around [-timecheck] indicate this is an option to the step. The minus means we wish to disable checking timestamps. Now this step is only run when the output is missing. 
+
+We're going to use different filenames to keep old versions. We can specify a different workflow name (other than Drakefile) with the -w option. 
+
+#+BEGIN_SRC bash :results verbatim
+mv Drakefile 01.drake 
+#+END_SRC
+
+#+RESULTS:
+
+then run drake -w 01.drake and we get nothing to do. This is because Drake detects that the step doesn't need to run again. 
+
+** 6.6 | Maybe 
+
+Since our workflow has one step, its essentially just a bash script. So, first we will split this up into two steps, where the first step processes the html, and the second step depends on the first step. 
+
+It may not be immediately obvious from our workflow, but our data resides in the same location as the script. It is better for the data to live in a separate locaiton and have it separated from any code that generates this data. 
+
+#+BEGIN_SRC bash :results verbatim :tangle Drakefile
+NUM:=5                                                              
+BASE=data/                                                          
+
+top.html <- [-timecheck]
+    curl -s 'http://www.gutenberg.org/browse/scores/top' > $OUTPUT  
+
+top-$[NUM] <- top.html                                              
+    < $INPUT grep -E '^<li>' |
+    head -n $[NUM] |
+    sed -E "s/.*ebooks\/([0-9]+)\">([^<]+)<.*/\\1,\\2/" > $OUTPUT
+#+END_SRC
+
+#+RESULTS:
+
+- We can specify variables in Drake, preferably at the beginning of the file, by specifying the variable name, then an equal sign, and then the value. the name NUM with := instead of = means that if NUM is already set, it will not be overridden.
+- The BASE variable is special in that Drake will treat every file specified in the workflow as if it were in the base directory
+- INPUT and OUTPUT refer to the value of the input and output of that step respectively
+
+aaand I couldn't get it to work. It seems that Factual's drake hasn't been updated since 2016.
+
+** 6.7 | drakeR 
+
+See the notebook on drakeR for the more up to date R version 
