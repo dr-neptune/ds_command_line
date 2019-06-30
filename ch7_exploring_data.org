@@ -1,0 +1,1075 @@
+* Exploring Data 
+
+** 7.1 | Overview 
+
+In this chapter we will learn to:
+
+- Inspect the data and its properties
+- Compute descriptive statistics
+- Create data visualizations inside and outside the command line
+
+
+** 7.2 | Inspecting Data and its Properties 
+
+These sections expect the data to be in tabular format, e.g. already in csv form. We will also assume the data has a header.
+
+*** 7.2.1 | Check for Header 
+
+We can check for a header by printing the first few lines.
+
+#+BEGIN_SRC bash :results verbatim
+#? [echo]
+head iris.csv | csvlook
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| sepal_length | sepal_width | petal_length | petal_width | species |
+| ------------ | ----------- | ------------ | ----------- | ------- |
+|          5.1 |         3.5 |   2001-01-04 |         0.2 | setosa  |
+|          4.9 |         3.0 |   2001-01-04 |         0.2 | setosa  |
+|          4.7 |         3.2 |   2001-01-03 |         0.2 | setosa  |
+|          4.6 |         3.1 |   2001-01-05 |         0.2 | setosa  |
+|          5.0 |         3.6 |   2001-01-04 |         0.2 | setosa  |
+|          5.4 |         3.9 |   2001-01-07 |         0.4 | setosa  |
+|          4.6 |         3.4 |   2001-01-04 |         0.3 | setosa  |
+|          5.0 |         3.4 |   2001-01-05 |         0.2 | setosa  |
+|          4.4 |         2.9 |   2001-01-04 |         0.2 | setosa  |
+#+end_example
+
+If the data has no header, check chapter 5 for some ways to correct that.
+
+*** 7.2.2 | Inspect All The Data 
+
+If we wish to see the raw data, its best not to use cat since it prints all the data to the screen in one go. To look at our own pace, its better to use less with the -s argument 
+
+#+BEGIN_SRC bash :results verbatim
+less -S iris.csv
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+sepal_length,sepal_width,petal_length,petal_width,species
+5.1,3.5,1.4,0.2,setosa
+4.9,3,1.4,0.2,setosa
+4.7,3.2,1.3,0.2,setosa
+4.6,3.1,1.5,0.2,setosa
+5,3.6,1.4,0.2,setosa
+5.4,3.9,1.7,0.4,setosa
+4.6,3.4,1.4,0.3,setosa
+5,3.4,1.5,0.2,setosa
+4.4,2.9,1.4,0.2,setosa
+4.9,3.1,1.5,0.1,setosa
+5.4,3.7,1.5,0.2,setosa
+4.8,3.4,1.6,0.2,setosa
+4.8,3,1.4,0.1,setosa
+4.3,3,1.1,0.1,setosa
+5.8,4,1.2,0.2,setosa
+5.7,4.4,1.5,0.4,setosa
+5.4,3.9,1.3,0.4,setosa
+5.1,3.5,1.4,0.3,setosa
+5.7,3.8,1.7,0.3,setosa
+5.1,3.8,1.5,0.3,setosa
+5.4,3.4,1.7,0.2,setosa
+5.1,3.7,1.5,0.4,setosa
+4.6,3.6,1,0.2,setosa
+5.1,3.3,1.7,0.5,setosa
+4.8,3.4,1.9,0.2,setosa
+5,3,1.6,0.2,setosa
+5,3.4,1.6,0.4,setosa
+5.2,3.5,1.5,0.2,setosa
+5.2,3.4,1.4,0.2,setosa
+4.7,3.2,1.6,0.2,setosa
+4.8,3.1,1.6,0.2,setosa
+5.4,3.4,1.5,0.4,setosa
+5.2,4.1,1.5,0.1,setosa
+5.5,4.2,1.4,0.2,setosa
+4.9,3.1,1.5,0.1,setosa
+5,3.2,1.2,0.2,setosa
+5.5,3.5,1.3,0.2,setosa
+4.9,3.1,1.5,0.1,setosa
+4.4,3,1.3,0.2,setosa
+5.1,3.4,1.5,0.2,setosa
+5,3.5,1.3,0.3,setosa
+4.5,2.3,1.3,0.3,setosa
+4.4,3.2,1.3,0.2,setosa
+5,3.5,1.6,0.6,setosa
+5.1,3.8,1.9,0.4,setosa
+4.8,3,1.4,0.3,setosa
+5.1,3.8,1.6,0.2,setosa
+4.6,3.2,1.4,0.2,setosa
+5.3,3.7,1.5,0.2,setosa
+5,3.3,1.4,0.2,setosa
+7,3.2,4.7,1.4,versicolor
+6.4,3.2,4.5,1.5,versicolor
+6.9,3.1,4.9,1.5,versicolor
+5.5,2.3,4,1.3,versicolor
+6.5,2.8,4.6,1.5,versicolor
+5.7,2.8,4.5,1.3,versicolor
+6.3,3.3,4.7,1.6,versicolor
+4.9,2.4,3.3,1,versicolor
+6.6,2.9,4.6,1.3,versicolor
+5.2,2.7,3.9,1.4,versicolor
+5,2,3.5,1,versicolor
+5.9,3,4.2,1.5,versicolor
+6,2.2,4,1,versicolor
+6.1,2.9,4.7,1.4,versicolor
+5.6,2.9,3.6,1.3,versicolor
+6.7,3.1,4.4,1.4,versicolor
+5.6,3,4.5,1.5,versicolor
+5.8,2.7,4.1,1,versicolor
+6.2,2.2,4.5,1.5,versicolor
+5.6,2.5,3.9,1.1,versicolor
+5.9,3.2,4.8,1.8,versicolor
+6.1,2.8,4,1.3,versicolor
+6.3,2.5,4.9,1.5,versicolor
+6.1,2.8,4.7,1.2,versicolor
+6.4,2.9,4.3,1.3,versicolor
+6.6,3,4.4,1.4,versicolor
+6.8,2.8,4.8,1.4,versicolor
+6.7,3,5,1.7,versicolor
+6,2.9,4.5,1.5,versicolor
+5.7,2.6,3.5,1,versicolor
+5.5,2.4,3.8,1.1,versicolor
+5.5,2.4,3.7,1,versicolor
+5.8,2.7,3.9,1.2,versicolor
+6,2.7,5.1,1.6,versicolor
+5.4,3,4.5,1.5,versicolor
+6,3.4,4.5,1.6,versicolor
+6.7,3.1,4.7,1.5,versicolor
+6.3,2.3,4.4,1.3,versicolor
+5.6,3,4.1,1.3,versicolor
+5.5,2.5,4,1.3,versicolor
+5.5,2.6,4.4,1.2,versicolor
+6.1,3,4.6,1.4,versicolor
+5.8,2.6,4,1.2,versicolor
+5,2.3,3.3,1,versicolor
+5.6,2.7,4.2,1.3,versicolor
+5.7,3,4.2,1.2,versicolor
+5.7,2.9,4.2,1.3,versicolor
+6.2,2.9,4.3,1.3,versicolor
+5.1,2.5,3,1.1,versicolor
+5.7,2.8,4.1,1.3,versicolor
+6.3,3.3,6,2.5,virginica
+5.8,2.7,5.1,1.9,virginica
+7.1,3,5.9,2.1,virginica
+6.3,2.9,5.6,1.8,virginica
+6.5,3,5.8,2.2,virginica
+7.6,3,6.6,2.1,virginica
+4.9,2.5,4.5,1.7,virginica
+7.3,2.9,6.3,1.8,virginica
+6.7,2.5,5.8,1.8,virginica
+7.2,3.6,6.1,2.5,virginica
+6.5,3.2,5.1,2,virginica
+6.4,2.7,5.3,1.9,virginica
+6.8,3,5.5,2.1,virginica
+5.7,2.5,5,2,virginica
+5.8,2.8,5.1,2.4,virginica
+6.4,3.2,5.3,2.3,virginica
+6.5,3,5.5,1.8,virginica
+7.7,3.8,6.7,2.2,virginica
+7.7,2.6,6.9,2.3,virginica
+6,2.2,5,1.5,virginica
+6.9,3.2,5.7,2.3,virginica
+5.6,2.8,4.9,2,virginica
+7.7,2.8,6.7,2,virginica
+6.3,2.7,4.9,1.8,virginica
+6.7,3.3,5.7,2.1,virginica
+7.2,3.2,6,1.8,virginica
+6.2,2.8,4.8,1.8,virginica
+6.1,3,4.9,1.8,virginica
+6.4,2.8,5.6,2.1,virginica
+7.2,3,5.8,1.6,virginica
+7.4,2.8,6.1,1.9,virginica
+7.9,3.8,6.4,2,virginica
+6.4,2.8,5.6,2.2,virginica
+6.3,2.8,5.1,1.5,virginica
+6.1,2.6,5.6,1.4,virginica
+7.7,3,6.1,2.3,virginica
+6.3,3.4,5.6,2.4,virginica
+6.4,3.1,5.5,1.8,virginica
+6,3,4.8,1.8,virginica
+6.9,3.1,5.4,2.1,virginica
+6.7,3.1,5.6,2.4,virginica
+6.9,3.1,5.1,2.3,virginica
+5.8,2.7,5.1,1.9,virginica
+6.8,3.2,5.9,2.3,virginica
+6.7,3.3,5.7,2.5,virginica
+6.7,3,5.2,2.3,virginica
+6.3,2.5,5,1.9,virginica
+6.5,3,5.2,2,virginica
+6.2,3.4,5.4,2.3,virginica
+5.9,3,5.1,1.8,virginica
+#+end_example
+
+The -s argument ensures that long lines wrapped when they don't fit in the terminal. Instead, less allows us to scroll horizontally to see the rest of the lines. The advantage is that less does not load the entire file into memory, which is good when dealing with large files. 
+
+If we want the data to be nicely formatted, we can add in csvlook
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvlook | less -S
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| sepal_length | sepal_width | petal_length | petal_width | species    |
+| ------------ | ----------- | ------------ | ----------- | ---------- |
+|          5.1 |         3.5 |          1.4 |         0.2 | setosa     |
+|          4.9 |         3.0 |          1.4 |         0.2 | setosa     |
+|          4.7 |         3.2 |          1.3 |         0.2 | setosa     |
+|          4.6 |         3.1 |          1.5 |         0.2 | setosa     |
+|          5.0 |         3.6 |          1.4 |         0.2 | setosa     |
+|          5.4 |         3.9 |          1.7 |         0.4 | setosa     |
+|          4.6 |         3.4 |          1.4 |         0.3 | setosa     |
+|          5.0 |         3.4 |          1.5 |         0.2 | setosa     |
+|          4.4 |         2.9 |          1.4 |         0.2 | setosa     |
+|          4.9 |         3.1 |          1.5 |         0.1 | setosa     |
+|          5.4 |         3.7 |          1.5 |         0.2 | setosa     |
+|          4.8 |         3.4 |          1.6 |         0.2 | setosa     |
+|          4.8 |         3.0 |          1.4 |         0.1 | setosa     |
+|          4.3 |         3.0 |          1.1 |         0.1 | setosa     |
+|          5.8 |         4.0 |          1.2 |         0.2 | setosa     |
+|          5.7 |         4.4 |          1.5 |         0.4 | setosa     |
+|          5.4 |         3.9 |          1.3 |         0.4 | setosa     |
+|          5.1 |         3.5 |          1.4 |         0.3 | setosa     |
+|          5.7 |         3.8 |          1.7 |         0.3 | setosa     |
+|          5.1 |         3.8 |          1.5 |         0.3 | setosa     |
+|          5.4 |         3.4 |          1.7 |         0.2 | setosa     |
+|          5.1 |         3.7 |          1.5 |         0.4 | setosa     |
+|          4.6 |         3.6 |          1.0 |         0.2 | setosa     |
+|          5.1 |         3.3 |          1.7 |         0.5 | setosa     |
+|          4.8 |         3.4 |          1.9 |         0.2 | setosa     |
+|          5.0 |         3.0 |          1.6 |         0.2 | setosa     |
+|          5.0 |         3.4 |          1.6 |         0.4 | setosa     |
+|          5.2 |         3.5 |          1.5 |         0.2 | setosa     |
+|          5.2 |         3.4 |          1.4 |         0.2 | setosa     |
+|          4.7 |         3.2 |          1.6 |         0.2 | setosa     |
+|          4.8 |         3.1 |          1.6 |         0.2 | setosa     |
+|          5.4 |         3.4 |          1.5 |         0.4 | setosa     |
+|          5.2 |         4.1 |          1.5 |         0.1 | setosa     |
+|          5.5 |         4.2 |          1.4 |         0.2 | setosa     |
+|          4.9 |         3.1 |          1.5 |         0.1 | setosa     |
+|          5.0 |         3.2 |          1.2 |         0.2 | setosa     |
+|          5.5 |         3.5 |          1.3 |         0.2 | setosa     |
+|          4.9 |         3.1 |          1.5 |         0.1 | setosa     |
+|          4.4 |         3.0 |          1.3 |         0.2 | setosa     |
+|          5.1 |         3.4 |          1.5 |         0.2 | setosa     |
+|          5.0 |         3.5 |          1.3 |         0.3 | setosa     |
+|          4.5 |         2.3 |          1.3 |         0.3 | setosa     |
+|          4.4 |         3.2 |          1.3 |         0.2 | setosa     |
+|          5.0 |         3.5 |          1.6 |         0.6 | setosa     |
+|          5.1 |         3.8 |          1.9 |         0.4 | setosa     |
+|          4.8 |         3.0 |          1.4 |         0.3 | setosa     |
+|          5.1 |         3.8 |          1.6 |         0.2 | setosa     |
+|          4.6 |         3.2 |          1.4 |         0.2 | setosa     |
+|          5.3 |         3.7 |          1.5 |         0.2 | setosa     |
+|          5.0 |         3.3 |          1.4 |         0.2 | setosa     |
+|          7.0 |         3.2 |          4.7 |         1.4 | versicolor |
+|          6.4 |         3.2 |          4.5 |         1.5 | versicolor |
+|          6.9 |         3.1 |          4.9 |         1.5 | versicolor |
+|          5.5 |         2.3 |          4.0 |         1.3 | versicolor |
+|          6.5 |         2.8 |          4.6 |         1.5 | versicolor |
+|          5.7 |         2.8 |          4.5 |         1.3 | versicolor |
+|          6.3 |         3.3 |          4.7 |         1.6 | versicolor |
+|          4.9 |         2.4 |          3.3 |         1.0 | versicolor |
+|          6.6 |         2.9 |          4.6 |         1.3 | versicolor |
+|          5.2 |         2.7 |          3.9 |         1.4 | versicolor |
+|          5.0 |         2.0 |          3.5 |         1.0 | versicolor |
+|          5.9 |         3.0 |          4.2 |         1.5 | versicolor |
+|          6.0 |         2.2 |          4.0 |         1.0 | versicolor |
+|          6.1 |         2.9 |          4.7 |         1.4 | versicolor |
+|          5.6 |         2.9 |          3.6 |         1.3 | versicolor |
+|          6.7 |         3.1 |          4.4 |         1.4 | versicolor |
+|          5.6 |         3.0 |          4.5 |         1.5 | versicolor |
+|          5.8 |         2.7 |          4.1 |         1.0 | versicolor |
+|          6.2 |         2.2 |          4.5 |         1.5 | versicolor |
+|          5.6 |         2.5 |          3.9 |         1.1 | versicolor |
+|          5.9 |         3.2 |          4.8 |         1.8 | versicolor |
+|          6.1 |         2.8 |          4.0 |         1.3 | versicolor |
+|          6.3 |         2.5 |          4.9 |         1.5 | versicolor |
+|          6.1 |         2.8 |          4.7 |         1.2 | versicolor |
+|          6.4 |         2.9 |          4.3 |         1.3 | versicolor |
+|          6.6 |         3.0 |          4.4 |         1.4 | versicolor |
+|          6.8 |         2.8 |          4.8 |         1.4 | versicolor |
+|          6.7 |         3.0 |          5.0 |         1.7 | versicolor |
+|          6.0 |         2.9 |          4.5 |         1.5 | versicolor |
+|          5.7 |         2.6 |          3.5 |         1.0 | versicolor |
+|          5.5 |         2.4 |          3.8 |         1.1 | versicolor |
+|          5.5 |         2.4 |          3.7 |         1.0 | versicolor |
+|          5.8 |         2.7 |          3.9 |         1.2 | versicolor |
+|          6.0 |         2.7 |          5.1 |         1.6 | versicolor |
+|          5.4 |         3.0 |          4.5 |         1.5 | versicolor |
+|          6.0 |         3.4 |          4.5 |         1.6 | versicolor |
+|          6.7 |         3.1 |          4.7 |         1.5 | versicolor |
+|          6.3 |         2.3 |          4.4 |         1.3 | versicolor |
+|          5.6 |         3.0 |          4.1 |         1.3 | versicolor |
+|          5.5 |         2.5 |          4.0 |         1.3 | versicolor |
+|          5.5 |         2.6 |          4.4 |         1.2 | versicolor |
+|          6.1 |         3.0 |          4.6 |         1.4 | versicolor |
+|          5.8 |         2.6 |          4.0 |         1.2 | versicolor |
+|          5.0 |         2.3 |          3.3 |         1.0 | versicolor |
+|          5.6 |         2.7 |          4.2 |         1.3 | versicolor |
+|          5.7 |         3.0 |          4.2 |         1.2 | versicolor |
+|          5.7 |         2.9 |          4.2 |         1.3 | versicolor |
+|          6.2 |         2.9 |          4.3 |         1.3 | versicolor |
+|          5.1 |         2.5 |          3.0 |         1.1 | versicolor |
+|          5.7 |         2.8 |          4.1 |         1.3 | versicolor |
+|          6.3 |         3.3 |          6.0 |         2.5 | virginica  |
+|          5.8 |         2.7 |          5.1 |         1.9 | virginica  |
+|          7.1 |         3.0 |          5.9 |         2.1 | virginica  |
+|          6.3 |         2.9 |          5.6 |         1.8 | virginica  |
+|          6.5 |         3.0 |          5.8 |         2.2 | virginica  |
+|          7.6 |         3.0 |          6.6 |         2.1 | virginica  |
+|          4.9 |         2.5 |          4.5 |         1.7 | virginica  |
+|          7.3 |         2.9 |          6.3 |         1.8 | virginica  |
+|          6.7 |         2.5 |          5.8 |         1.8 | virginica  |
+|          7.2 |         3.6 |          6.1 |         2.5 | virginica  |
+|          6.5 |         3.2 |          5.1 |         2.0 | virginica  |
+|          6.4 |         2.7 |          5.3 |         1.9 | virginica  |
+|          6.8 |         3.0 |          5.5 |         2.1 | virginica  |
+|          5.7 |         2.5 |          5.0 |         2.0 | virginica  |
+|          5.8 |         2.8 |          5.1 |         2.4 | virginica  |
+|          6.4 |         3.2 |          5.3 |         2.3 | virginica  |
+|          6.5 |         3.0 |          5.5 |         1.8 | virginica  |
+|          7.7 |         3.8 |          6.7 |         2.2 | virginica  |
+|          7.7 |         2.6 |          6.9 |         2.3 | virginica  |
+|          6.0 |         2.2 |          5.0 |         1.5 | virginica  |
+|          6.9 |         3.2 |          5.7 |         2.3 | virginica  |
+|          5.6 |         2.8 |          4.9 |         2.0 | virginica  |
+|          7.7 |         2.8 |          6.7 |         2.0 | virginica  |
+|          6.3 |         2.7 |          4.9 |         1.8 | virginica  |
+|          6.7 |         3.3 |          5.7 |         2.1 | virginica  |
+|          7.2 |         3.2 |          6.0 |         1.8 | virginica  |
+|          6.2 |         2.8 |          4.8 |         1.8 | virginica  |
+|          6.1 |         3.0 |          4.9 |         1.8 | virginica  |
+|          6.4 |         2.8 |          5.6 |         2.1 | virginica  |
+|          7.2 |         3.0 |          5.8 |         1.6 | virginica  |
+|          7.4 |         2.8 |          6.1 |         1.9 | virginica  |
+|          7.9 |         3.8 |          6.4 |         2.0 | virginica  |
+|          6.4 |         2.8 |          5.6 |         2.2 | virginica  |
+|          6.3 |         2.8 |          5.1 |         1.5 | virginica  |
+|          6.1 |         2.6 |          5.6 |         1.4 | virginica  |
+|          7.7 |         3.0 |          6.1 |         2.3 | virginica  |
+|          6.3 |         3.4 |          5.6 |         2.4 | virginica  |
+|          6.4 |         3.1 |          5.5 |         1.8 | virginica  |
+|          6.0 |         3.0 |          4.8 |         1.8 | virginica  |
+|          6.9 |         3.1 |          5.4 |         2.1 | virginica  |
+|          6.7 |         3.1 |          5.6 |         2.4 | virginica  |
+|          6.9 |         3.1 |          5.1 |         2.3 | virginica  |
+|          5.8 |         2.7 |          5.1 |         1.9 | virginica  |
+|          6.8 |         3.2 |          5.9 |         2.3 | virginica  |
+|          6.7 |         3.3 |          5.7 |         2.5 | virginica  |
+|          6.7 |         3.0 |          5.2 |         2.3 | virginica  |
+|          6.3 |         2.5 |          5.0 |         1.9 | virginica  |
+|          6.5 |         3.0 |          5.2 |         2.0 | virginica  |
+|          6.2 |         3.4 |          5.4 |         2.3 | virginica  |
+|          5.9 |         3.0 |          5.1 |         1.8 | virginica  |
+#+end_example
+
+Unfortunately, csvlook needs to read the entire file into memory in order to determine the width of the columns. So, when dealing with very large files, we may want to get a subset via sample
+
+*** 7.2.3 | Feature Names and Data Types 
+
+We may want to print the feature names. We can use the following sed expression for this: 
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | sed -e 's/,/\n/g;q'
+#+END_SRC
+
+#+RESULTS:
+: sepal_length
+: sepal_width
+: petal_length
+: petal_width
+: species
+
+This command assumes that the file is delimited by commas. If we intend to use it often, we can define a function.
+
+#+BEGIN_SRC bash :results verbatim
+names () { sed -e 's/,/\n/g;q'; }
+
+cat investments2.csv | names
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+company_permalink
+company_name
+company_category_list
+company_market
+company_country_code
+company_state_code
+company_region
+company_city
+investor_permalink
+investor_name
+investor_category_list
+investor_market
+investor_country_code
+investor_state_code
+investor_region
+investor_city
+funding_round_permalink
+funding_round_type
+funding_round_code
+funded_at
+funded_month
+funded_quarter
+funded_year
+raised_amount_usd
+#+end_example
+
+We can also print the type of values each column contains. 
+
+Assume we have the following toy data set
+
+#+BEGIN_SRC bash :results verbatim
+cat datatypes.csv | csvlook
+#+END_SRC
+
+#+RESULTS:
+: |  a |      b |     c | d        |                   e |          f | g       |
+: | -- | ------ | ----- | -------- | ------------------- | ---------- | ------- |
+: |  2 | 0.000… | False | "Yes!"   | 2011-11-11 11:00:00 | 2012-09-08 | 12:34   |
+: | 42 | 3.142… |  True | Oh, good | 2014-09-15 00:00:00 | 1970-12-06 | 0:07 PM |
+: | 66 |        | False | 2198     |                     |            |         |
+
+We've used csvsql in the past to execute SQL queries directly on CSVs. When no command line arguments are passed, it generates the necessary SQL statement that would be needed if we were to insert the data into an actual database. 
+
+#+BEGIN_SRC bash :results verbatim
+csvsql datatypes.csv
+#+END_SRC
+
+#+RESULTS:
+: CREATE TABLE datatypes (
+: 	a DECIMAL NOT NULL, 
+: 	b DECIMAL, 
+: 	c BOOLEAN NOT NULL, 
+: 	d VARCHAR NOT NULL, 
+: 	e TIMESTAMP, 
+: 	f DATE, 
+: 	g VARCHAR
+: );
+
+*** 7.2.4 | Unique Identifiers, Continuous Variables, and Factors 
+
+We also wish to know what each feature represents. To determine whether a feature should be treated as a unique identifier or categorical variable (or factor in R terms), we can count the number of unique values for a specific column. 
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | csvcut -c species | body "sort | uniq | wc -l"
+#+END_SRC
+
+#+RESULTS:
+: species
+: 3
+
+We could also use csvstat (part of the csvkit) to get the number of unique values for each column. 
+
+#+BEGIN_SRC bash :results verbatim
+csvstat investments2.csv --unique
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+  1. company_permalink: 27336
+  2. company_name: 27322
+  3. company_category_list: 8758
+  4. company_market: 442
+  5. company_country_code: 150
+  6. company_state_code: 146
+  7. company_region: 1079
+  8. company_city: 3302
+  9. investor_permalink: 11174
+ 10. investor_name: 11133
+ 11. investor_category_list: 463
+ 12. investor_market: 131
+ 13. investor_country_code: 106
+ 14. investor_state_code: 75
+ 15. investor_region: 545
+ 16. investor_city: 1197
+ 17. funding_round_permalink: 41793
+ 18. funding_round_type: 13
+ 19. funding_round_code: 15
+ 20. funded_at: 3595
+ 21. funded_month: 294
+ 22. funded_quarter: 120
+ 23. funded_year: 34
+ 24. raised_amount_usd: 6146
+#+end_example
+
+If the number of unique values is low compared to the number of rows then that feature may be treated as a categorical one. If the number is equal to the number of rows, then it may be a unique identifier. 
+
+** 7.3 | Computing Descriptive Statistics 
+
+*** 7.3.1 | csvstat 
+
+For each column, csvstat shows 
+
+- The data type in python terminology
+- Whether it has any missing values (nulls)
+- The number of unique values
+- Various descriptive statistics (max, min, sum, mean, sd, and median) for those features where it is appropriate.
+
+#+BEGIN_SRC bash :results verbatim
+csvstat datatypes.csv
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+  1. "a"
+
+	Type of data:          Number
+	Contains null values:  False
+	Unique values:         3
+	Smallest value:        2
+	Largest value:         66
+	Sum:                   110
+	Mean:                  36.667
+	Median:                42
+	StDev:                 32.332
+	Most common values:    2 (1x)
+	                       42 (1x)
+	                       66 (1x)
+
+  2. "b"
+
+	Type of data:          Number
+	Contains null values:  True (excluded from calculations)
+	Unique values:         3
+	Smallest value:        0
+	Largest value:         3.142
+	Sum:                   3.142
+	Mean:                  1.571
+	Median:                1.571
+	StDev:                 2.221
+	Most common values:    0 (1x)
+	                       3.142 (1x)
+	                       None (1x)
+
+  3. "c"
+
+	Type of data:          Boolean
+	Contains null values:  False
+	Unique values:         2
+	Most common values:    False (2x)
+	                       True (1x)
+
+  4. "d"
+
+	Type of data:          Text
+	Contains null values:  False
+	Unique values:         3
+	Longest value:         8 characters
+	Most common values:    "Yes!" (1x)
+	                       Oh, good (1x)
+	                       2198 (1x)
+
+  5. "e"
+
+	Type of data:          DateTime
+	Contains null values:  True (excluded from calculations)
+	Unique values:         3
+	Smallest value:        2011-11-11 11:00:00
+	Largest value:         2014-09-15 00:00:00
+	Most common values:    2011-11-11 11:00:00 (1x)
+	                       2014-09-15 00:00:00 (1x)
+	                       None (1x)
+
+  6. "f"
+
+	Type of data:          Date
+	Contains null values:  True (excluded from calculations)
+	Unique values:         3
+	Smallest value:        1970-12-06
+	Largest value:         2012-09-08
+	Most common values:    2012-09-08 (1x)
+	                       1970-12-06 (1x)
+	                       None (1x)
+
+  7. "g"
+
+	Type of data:          Text
+	Contains null values:  True (excluded from calculations)
+	Unique values:         3
+	Longest value:         7 characters
+	Most common values:    12:34 (1x)
+	                       0:07 PM (1x)
+	                       None (1x)
+
+Row count: 3
+#+end_example
+
+
+This gives us a verbose output. For a more concise output, we can specify the following arguments : 
+
+- --max
+- --min
+- --sum
+- --mean
+- --median
+- --stdev
+- --nulls
+- --unique
+- --freq
+- --len 
+
+For example, 
+
+#+BEGIN_SRC bash :results verbatim
+csvstat datatypes.csv --null
+#+END_SRC
+
+#+RESULTS:
+:   1. a: False
+:   2. b: True
+:   3. c: False
+:   4. d: False
+:   5. e: True
+:   6. f: True
+:   7. g: True
+
+We can select a subset of features with the -c command. This accepts both integers and column names
+
+#+BEGIN_SRC bash :results verbatim
+csvstat investments2.csv -c 2,13,19,24
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+  2. "company_name"
+
+	Type of data:          Text
+	Contains null values:  True (excluded from calculations)
+	Unique values:         27322
+	Longest value:         66 characters
+	Most common values:    Aviir (13x)
+	                       Galectin Therapeutics (12x)
+	                       Rostima (12x)
+	                       Facebook (11x)
+	                       Lending Club (11x)
+
+ 13. "investor_country_code"
+
+	Type of data:          Text
+	Contains null values:  True (excluded from calculations)
+	Unique values:         106
+	Longest value:         15 characters
+	Most common values:    USA (20807x)
+	                       None (9022x)
+	                       GBR (2357x)
+	                       DEU (946x)
+	                       CAN (893x)
+
+ 19. "funding_round_code"
+
+	Type of data:          Text
+	Contains null values:  True (excluded from calculations)
+	Unique values:         15
+	Longest value:         1 characters
+	Most common values:    None (24799x)
+	                       a (7529x)
+	                       b (4776x)
+	                       c (2452x)
+	                       d (1042x)
+
+ 24. "raised_amount_usd"
+
+	Type of data:          Number
+	Contains null values:  True (excluded from calculations)
+	Unique values:         6146
+	Smallest value:        0
+	Largest value:         3,200,000,000
+	Sum:                   359,894,884,667
+	Mean:                  10,368,622.434
+	Median:                3,250,000
+	StDev:                 38,511,075.899
+	Most common values:    None (7083x)
+	                       10,000,000 (1159x)
+	                       1,000,000 (1074x)
+	                       5,000,000 (1066x)
+	                       2,000,000 (875x)
+
+Row count: 41793
+#+end_example
+
+As an extra, csvstat outputs the number of rows. To see just this, we can use tail
+
+#+BEGIN_SRC bash :results verbatim
+csvstat iris.csv | tail -n 1
+#+END_SRC
+
+#+RESULTS:
+: Row count: 150
+
+We could also extract just the number with sed
+
+#+BEGIN_SRC bash :results verbatim
+csvstat iris.csv | sed -rne '${s/^([^:]+): ([0-9]+)$/\2/;p}'
+#+END_SRC
+
+#+RESULTS:
+: 150
+
+*** 7.3.2 | Using R from the Command Line using Rio 
+
+Rio stands for R input output. We can simply pipe CSV data into Rio and specify the R commands we wish to run on it.
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -e 'df$tip / df$bill * 100' | head -n 100
+#+END_SRC
+
+#+RESULTS:
+: 5.944673\n16.05416\n16.65873\n13.97804\n14.68076\n18.62396\n22.80502\n11.60714\n13.03191\n21.85386\n16.65044\n14.18037\n10.18158\n16.27781\n20.36413\n18.16497\n16.16651\n22.77471\n20.62463\n16.22276\n22.76786\n13.55347\n14.14077\n19.22882\n16.0444\n13.13869\n14.95886\n15.76044\n19.81567\n15.26718\n15.18325\n13.62398\n19.92032\n11.84147\n18.39145\n14.96259\n12.26242\n18.13349\n12.35955\n15.98977\n13.96509\n14.54754\n21.95122\n13.63636\n18.42105\n16.40241\n22.49213\n18.51852\n7.180385\n16.62971\n19.9362\n25.26725\n14.93824\n15.69416\n16.97966\n18.00924\n7.89266\n5.679667\n15.65836\n13.94241\n15.8206\n14.48226\n17.96733\n20.55768\n15.00853\n15.68725\n15.0152\n32.57329\n9.935739\n13.92405\n16.38935\n17.57469\n11.69025\n19.77848\n14.93551\n11.89343\n17.1875\n14.70588\n13.18102\n15.6738\n15.4321\n20.40816\n18.17279\n15.29988\n12.70338\n14.84353\n15.34919\n21.88184\n23.67463\n14.17769\n10.35554\n15.56247\n17.3913\n26.34804\n14.28571\n11.77496\n14.66276\n12.46883\n14.27891\n12.03852\n22.02643\n19.50585\n5.643341\n15.52186\n19.50287\n10.67708\n19.81454\n17.01706\n20.61404\n27.95248\n21.42857\n13.7931\n10.50696\n10.64718\n15.55815\n20.21953\n16.93953\n14.08451\n14.48109\n12.12625\n19.76048\n12.51863\n17.53156\n12.53918\n20.19231\n14.09396\n17.37089\n13.7741\n17.57469\n9.553024\n7.861635\n13.96152\n13.42883\n16.31321\n17.79847\n14.6886\n19.36108\n14.13428\n12.5\n20.89666\n20.03434\n19.53353\n12.13887\n18.48429\n13.99878\n17.96407\n7.296137\n13.7321\n17.68916\n26.63116\n17.7683\n15.23229\n15.87486\n8.14664\n10.11634\n17.21943\n10.3799\n15\n19.49216\n12.12856\n16.27907\n19.74724\n12.33806\n14.48226\n17.13307\n14.1925\n10.78998\n14.19111\n15.20302\n18.81468\n19.68117\n19.98735\n71.03448\n9.984301\n23.78121\n9.452888\n11.17943\n13.81215\n41.66667\n10.25123\n10.62049\n24.21775\n7.717751\n28.05352\n7.398274\n24.16626\n16.74641\n6.565988\n19.28375\n17.31602\n9.560229\n21.15093\n9.001406\n13.0491\n24.12545\n19.04762\n19.34236\n11.59824\n15.38462\n14.80385\n21.37894\n15.77708\n15.38462\n15.2439\n19.48368\n19.61141\n12.82437\n7.745933\n8.364236\n17.47649\n6.65336\n19.93048\n18.62197\n18.83949\n23.07419\n8.527132\n10.65719\n12.94219\n18.60465\n10.25216\n18.09211\n25.93145\n22.37762\n18.77347\n11.77347\n15.3657\n19.82161\n14.66993\n20.48193\n13.01989\n8.329863\n19.12046\n29.19897\n13.64903\n19.31745\n12.41311\n7.936508\n3.563814\n13.03377\n20.3927\n7.358352\n8.822232\n9.820426\n15.97444
+
+We can also add a column called percent to the input data 
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -e 'df$percent <- df$tip / df$bill * 100; df' | head | csvlook
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+|  bill |  tip | sex    | smoker |        day | time   | size | percent |
+| ----- | ---- | ------ | ------ | ---------- | ------ | ---- | ------- |
+| 16.99 | 1.01 | Female |  False | 0001-01-07 | Dinner |    2 |  5.945… |
+| 10.34 | 1.66 | Male   |  False | 0001-01-07 | Dinner |    3 | 16.054… |
+| 21.01 | 3.50 | Male   |  False | 0001-01-07 | Dinner |    3 | 16.659… |
+| 23.68 | 3.31 | Male   |  False | 0001-01-07 | Dinner |    2 | 13.978… |
+| 24.59 | 3.61 | Female |  False | 0001-01-07 | Dinner |    4 | 14.681… |
+| 25.29 | 4.71 | Male   |  False | 0001-01-07 | Dinner |    4 | 18.624… |
+|  8.77 | 2.00 | Male   |  False | 0001-01-07 | Dinner |    2 | 22.805… |
+| 26.88 | 3.12 | Male   |  False | 0001-01-07 | Dinner |    4 | 11.607… |
+| 15.04 | 1.96 | Male   |  False | 0001-01-07 | Dinner |    2 | 13.032… |
+#+end_example
+
+Rio takes care of the boilerplate, allowing R code to be one liners. It assumes the input data is in csv format with a header. If we specify -n, then Rio doesn't consider the first row to be a header and creates default column names. 
+
+Behind the scenes, Rio writes the piped data to a temporary CSV file that creates a script that: 
+
+- imports required libraries
+- loads the CSV file as a data frame
+- generates a ggplot2 object if needed
+- runs the specified commands
+- prints the result of the last command to standard output 
+
+The output of Rio doesn't necessarily have to be in CSV format. For example:
+
+#+BEGIN_SRC bash :results verbatim
+cat iris.csv | Rio -e 'paste("Mean: ", round(mean(df$sepal_length), 2), "\n")'
+cat iris.csv | Rio -e 'paste("Std Dev: ", round(sd(df$sepal_length), 2), "\n")'
+cat iris.csv | Rio -e 'paste("Sum: ", round(sum(df$sepal_length), 2), "\n")'
+#+END_SRC
+
+#+RESULTS:
+: Mean:  5.84 
+: Std Dev:  0.83 
+: Sum:  876.5 
+
+** 7.4 | Visualizations 
+
+One of the benefits of gnuplot and feedgnuplot is that it can take streaming values. 
+
+Below, we stream random numbers into a plot. Note this doesn't work correctly in emacs, but it does work correctly in the actual terminal.
+
+#+BEGIN_SRC bash :results verbatim
+while true; do echo $RANDOM; done | sample -d 10 | feedgnuplot --stream --terminal 'dumb 80,25' --lines --xlen 10
+#+END_SRC
+
+We can also use Rio and ggplot2
+
+#+BEGIN_SRC bash :results verbatim
+cat immigration.dat | sed -re '/^#/d;s/\t/,/g;s/,-,/,0,/g;s/Region/Period/' | tee immigration.csv | head | cut -c1-80
+#+END_SRC
+
+#+RESULTS:
+: Period,Austria,Hungary,Belgium,Czechoslovakia,Denmark,France,Germany,Greece,Irel
+: 1891-1900,234081,181288,18167,0,50231,30770,505152,15979,388416,651893,26758,950
+: 1901-1910,668209,808511,41635,0,65285,73379,341498,167519,339065,2045877,48262,1
+: 1911-1920,453649,442693,33746,3426,41983,61897,143945,184201,146181,1109524,4371
+: 1921-1930,32868,30680,15846,102194,32430,49610,412202,51084,211234,455315,26948,
+: 1931-1940,3563,7861,4817,14393,2559,12623,144058,9119,10973,68028,7150,4740,3960
+: 1941-1950,24860,3469,12189,8347,5393,38809,226578,8973,19789,57661,14860,10100,1
+: 1951-1960,67106,36637,18575,918,10984,51121,477765,47608,43362,185491,52277,2293
+: 1961-1970,20621,5401,9192,3273,9201,45237,190796,85969,32966,214111,30606,15484,
+
+The sed expression consists of four parts, delimited by semicolons:
+
+1. Remove lines that start with #
+2. Convert tabs to commas
+3. Change dashes (missing values) into zeros
+4. Change the feature name Region into period 
+
+We can then select only the columns that matter with csvcut and then use Rio and melt to make it into wide format
+
+#+BEGIN_SRC bash :results verbatim
+cat immigration.csv | csvcut -c Period,Denmark,Netherlands,Norway,Sweden | Rio -re 'melt(df, id = "Period", variable.name = "Country", value.name = "Count")' | tee immigration_long.csv | head
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Loading required package: dplyr
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+#+end_example
+
+#+BEGIN_SRC bash :results verbatim
+cat immigration.csv | csvcut -c Period,Denmark,Netherlands,Norway,Sweden | 
+Rio -re 'reshape2::melt(df, id="Period", variable.name="Country", value.name="Count")' |
+tee immigration-long.csv | head | csvlook
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| Period    | Country     |  Count |
+| --------- | ----------- | ------ |
+| 1891-1900 | Denmark     | 50,231 |
+| 1901-1910 | Denmark     | 65,285 |
+| 1911-1920 | Denmark     | 41,983 |
+| 1921-1930 | Denmark     | 32,430 |
+| 1931-1940 | Denmark     |  2,559 |
+| 1941-1950 | Denmark     |  5,393 |
+| 1951-1960 | Denmark     | 10,984 |
+| 1961-1970 | Denmark     |  9,201 |
+| 1891-1900 | Netherlands | 26,758 |
+#+end_example
+
+Now we can use Rio again to build a ggplot visualization
+
+#+BEGIN_SRC bash :results verbatim
+cat immigration-long.csv | Rio -ge 'g +
+geom_bar(aes(Country, Count, fill = Period), stat = "identity") + 
+scale_fill_brewer(palette="Set1") + 
+labs(x = "Country of Origin", y = "Immigration by Decade",
+       title = "Immigration from Northern Europe\n(Column-Stacked Histogram)")' | 
+display
+#+END_SRC
+
+#+RESULTS:
+
+The -g command indicates that Rio should load ggplot2. We can either pipe the image to display which is part of ImageMagick, or we could redirect the output to a png file. If we are on a remote terminal, then we probably won't be able to see any graphics. A workaround for this is to start a web server from a particular directory.
+
+#+BEGIN_SRC bash :results verbatim
+python -m SimpleHTTPServer 8000
+#+END_SRC
+
+If we have access to the port, we can save the png to the directory from which the webserver was launched and then access the image from our browser at http://localhost:8000/file.png 
+
+*** 7.4.3 | Histograms 
+
+With Rio
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -ge 'g + geom_histogram(aes(bill))' | display
+#+END_SRC
+
+#+RESULTS:
+
+With feedgnuplot
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | csvcut -c bill | feedgnuplot --terminal 'dumb 80,25' --histogram 0 --with boxes --ymin 0 --binwidth 1.5 --unset grid --exit
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                                                                                
+  25 +----------------------------------------------------------------------+   
+     |     +      +     +*** * +     +      +     +      +     +      +     |   
+     |                   * * *                                              |   
+     |               *** * * *                                              |   
+  20 |-+             * * * * *                                            +-|   
+     |            **** * * * *                                              |   
+     |            * ** * * * * ***                                          |   
+     |            * ** *** * * * *                                          |   
+  15 |-+          * ** * * * * * *                                        +-|   
+     |            * ** * * * * * *                                          |   
+     |            * ** * * * * * *                                          |   
+     |            * ** * * * * * *                                          |   
+     |            * ** * * * * * * ***                                      |   
+  10 |-+          * ** * * * *** *** *                                    +-|   
+     |          *** ** * * * * * * * * ***                                  |   
+     |          * * ** * * * * * * * *** * ***                              |   
+     |          * * ** * * * * * * * * * *** *                              |   
+   5 |-+      *** * ** * * * * * * * * * * * *   ***                      +-|   
+     |        * * * ** * * * * * * * * * * * ***** *    ***       ***       |   
+     |        * * * ** * * * * * * * * * * * * * * ****** *   *** * *       |   
+     |  ***+*** * * ** *+* * * * * * * * * *+* * *+** * *+* ***+* * * ***   |   
+   0 +----------------------------------------------------------------------+   
+     0     5      10    15     20    25     30    35     40    45     50    55  
+                                                                                
+#+end_example
+
+*** 7.4.4 | Bar Plots 
+
+With Rio 
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -ge 'g + geom_bar(aes(factor(size)))' | display
+#+END_SRC
+
+#+RESULTS:
+
+With feedgnuplot
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | csvcut -c size | header -d | feedgnuplot --terminal 'dumb 80,25' --histogram 0 --with boxes --unset grid --exit
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                                                                                
+  160 +---------------------------------------------------------------------+   
+      |      ***************      +             +             +             |   
+      |      *             *                                                |   
+  140 |-+    *             *                                              +-|   
+      |      *             *                                                |   
+  120 |-+    *             *                                              +-|   
+      |      *             *                                                |   
+      |      *             *                                                |   
+  100 |-+    *             *                                              +-|   
+      |      *             *                                                |   
+   80 |-+    *             *                                              +-|   
+      |      *             *                                                |   
+      |      *             *                                                |   
+   60 |-+    *             *                                              +-|   
+      |      *             *                                                |   
+      |      *             *                                                |   
+   40 |-+    *             *****************************                  +-|   
+      |      *             *             *             *                    |   
+   20 |-+    *             *             *             *                  +-|   
+      |      *             *             *             *                    |   
+      |*******      +      *      +      *      +      *********************|   
+    0 +---------------------------------------------------------------------+   
+      1             2             3             4             5             6   
+                                                                                
+#+end_example
+
+*** 7.4.5 | Density Plots 
+
+With Rio
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -ge 'g + geom_density(aes(tip / bill * 100, fill = sex), alpha = 0.3) + 
+xlab("percent")' | display
+#+END_SRC
+
+#+RESULTS:
+
+Since feedgnuplot cannot generate density plots, its best to generate a histogram
+
+*** 7.4.6 | Box Plots 
+
+With Rio
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -ge 'g + geom_boxplot(aes(time, bill))' | display
+#+END_SRC
+
+#+RESULTS:
+
+Boxplots aren't a part of gnuplot (as of this writing)
+
+*** 7.4.7 | Scatter Plots 
+
+With Rio
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | Rio -ge 'g + geom_point(aes(bill, tip, color = time))' | display
+#+END_SRC
+
+#+RESULTS:
+
+With feedgnuplot 
+
+#+BEGIN_SRC bash :results verbatim
+cat tips.csv | csvcut -c bill,tip | tr , ' ' | header -d |
+feedgnuplot --terminal 'dumb 80,25' --points --domain --unset grid --exit --style 'pt' '14'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                                                                                
+  10 +----------------------------------------------------------------------+   
+     |     +      +     +      +     +      +     +      +     +      +     |   
+   9 |-+                                                           A      +-|   
+     |                                                                      |   
+     |                                                                      |   
+   8 |-+                                                                  +-|   
+     |                                                  A                   |   
+   7 |-+                                                                  +-|   
+     |                             A     A       A                 A        |   
+   6 |-+                                       A                          +-|   
+     |                             A A    A A                               |   
+     |        A                       A     A     A                         |   
+   5 |-+                        A A   A A   AA A   A     AA  A     A      +-|   
+     |                    A      A    A       A                             |   
+   4 |-+         A     A  AAAA AAA A  A A  A          A                   +-|   
+     |              A A   AAAAA AAA AA A          A             A           |   
+   3 |-+               AAAAAAAAAA A A   AAA A AA      AA A                +-|   
+     |            A AAAA  AAAA A  A A     A                   A             |   
+     |              AA  AAA AA  A A                                         |   
+   2 |-+       AA AAAAAAAAA A  A  A AA  A A A                             +-|   
+     |     +   AAAAAAAA +A   AA+     + A    +     +      +     +      +     |   
+   1 +----------------------------------------------------------------------+   
+     0     5      10    15     20    25     30    35     40    45     50    55  
+                                                                                
+#+end_example
+
+*** 7.4.8 | Line Graphs 
+
+With Rio 
+
+#+BEGIN_SRC bash :results verbatim
+cat immigration-long.csv | Rio -ge 'g + geom_line(aes(x = Period, y = Count, group = Country, color = Country)) + theme(axis.text.x = element_text(angle = -45, hjust = 0))' | display
+#+END_SRC
+
+#+RESULTS:
+
+With feedgnuplot 
+
+#+BEGIN_SRC bash :results verbatim
+cat immigration.csv | csvcut -c Period,Denmark,Netherlands,Norway,Sweden | 
+header -d | tr , ' ' | feedgnuplot --terminal 'dumb 80,25' --lines --autolegend --domain --legend 0 "Denmark" --legend 1 "Netherlands" --legend 2 "Norway" --legend 3 "Sweden" --xlabel "Period" --unset grid --exit
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                                                                                
+  250000 +------------------------------------------------------------------+   
+         |  %%%% + %      +       +        +       +       +        +       |   
+         |%%        %                                       Denmark ******* |   
+         |          %                                   Netherlands ####### |   
+  200000 |-+         %                                       Norway $$$$$$$-|   
+         |        $   %                                      Sweden %%%%%%% |   
+         |       $ $   %                                                    |   
+         |      $   $  %                                                    |   
+  150000 |-+  $$     $  %                                                 +-|   
+         |   $        $  %                                                  |   
+         |  $          $  %                                                 |   
+         | $           $  %                                                 |   
+  100000 |$+            $  %%%%%%%%%                                      +-|   
+         |               $          %                                       |   
+         |                $          %                                      |   
+         |    ***********  $$$$$$$$$$$%                                     |   
+   50000 |****  ###########           $%                   #######        +-|   
+         |  ####           ########****$%               ###       ##        |   
+         |##                       ######%$           ##%%%%%%%%%%%%#       |   
+         |       +        +       +       %#####%%%%%%%%************%       |   
+       0 +------------------------------------------------------------------+   
+        1890    1900     1910    1920     1930    1940    1950     1960    1970 
+                                       Period                                   
+                                                                                
+#+end_example
+
+** 7.5 | Further Reading 
+
+- Wickham, Hadley. 2009. ggplot2: Elegant Graphics for Data Analysis. Springer.
+- Janert, Philipp K. 2009. Gnuplot in Action. Manning Publications.
+- Tukey, John W. 1977. Exploratory Data Analysis. Pearson.
