@@ -1,0 +1,70 @@
+* Parallel Pipelines
+
+In practice, we may find ourselves facing a task that requires the same command or pipeline to run multiple times. For example, we may need to :
+
+- Scrape hundreds of webpages
+- Make dozens of API calls and transform their output
+- Train a classifier for a range of parameter values
+- Generate scatter plots for every pair of features in our dataset 
+
+In this chapter, we focus on GNU Parallel which allows us to run scripts in parallel.
+
+** 8.2 | Serial Processing 
+
+From the examples above, we can glean three types of items to loop over: 
+
+1. numbers
+2. lines
+3. files
+
+*** 8.2.1 | Looping Over Numbers 
+
+Suppose we wish to compute the square of every even integer between 0 and 100. Theres a tool called bc (which is basically a calculator that we can pipe to). 
+
+#+BEGIN_SRC bash :results verbatim
+echo "4^2" | bc
+#+END_SRC
+
+#+RESULTS:
+: 16
+
+Now lets do this with more numbers 
+
+#+BEGIN_SRC bash :results verbatim
+for i in {0..100..2}
+do
+echo "$i^2" | bc
+done | tail
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+6724
+7056
+7396
+7744
+8100
+8464
+8836
+9216
+9604
+10000
+#+end_example
+
+There are a number of things going on here: 
+
+- bash has a feature called brace expansion, which transforms {0..100..2} into a list separated by spaces: 0 2 4 ... 98 100
+- The variable i is assigned to the value of the iterator
+- We pipe the output to tail so we only have to see the last ten values 
+
+*** 8.2.2 | Looping Over Lines 
+
+We can also loop over lines. These can come from a file or standard input. 
+
+Imagine we want to send an email to our customers. Let's generate some fake users with the randomuser.me API: 
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+curl -s "https://randomuser.me/api/1.2/?results=5" > users.json < users.json jq -r '.results[] | "email"' > emails.txt
+#+END_SRC
