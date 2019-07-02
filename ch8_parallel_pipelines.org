@@ -68,3 +68,527 @@ Imagine we want to send an email to our customers. Let's generate some fake user
 #+BEGIN_SRC bash :results verbatim
 curl -s "https://randomuser.me/api/1.2/?results=5" > users.json < users.json jq -r '.results[] | "email"' > emails.txt
 #+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+curl -s "https://randomuser.me/api/1.2/?results=5" > users.json;
+cat users.json | jq -r '.results[].email' > emails.txt
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cat emails.txt
+#+END_SRC
+
+#+RESULTS:
+: joel.ahola@example.com
+: brayden.sims@example.com
+: sheetal.vanzandvoort@example.com
+: dalva.costa@example.com
+: beau.hughes@example.com
+
+We can loop over the lines from emails.txt with a while loop
+
+#+BEGIN_SRC bash :results verbatim
+while read line 
+do
+echo "Sending invitation to ${line}."
+done < emails.txt
+#+END_SRC
+
+#+RESULTS:
+: Sending invitation to joel.ahola@example.com.
+: Sending invitation to brayden.sims@example.com.
+: Sending invitation to sheetal.vanzandvoort@example.com.
+: Sending invitation to dalva.costa@example.com.
+: Sending invitation to beau.hughes@example.com.
+
+- Although the curly braces around the line variable are not necessary in this case (since variable names cannot contain periods), its still good practice
+- This redirection can also be placed before while 
+
+We can also provide input to the while loop interactively by specifying the special file standard input /dev/stdin. Press ctrl-D when done 
+
+#+BEGIN_SRC bash :results verbatim
+while read i; 
+do echo "You typed: $i."; 
+done < /dev/stdin
+#+END_SRC
+
+#+RESULTS:
+: You typed: while read i;.
+: You typed: do echo "You typed: $i.";.
+
+*** 8.2.3 | Looping Over Files 
+
+To handle special characters, use globbing instead of ls 
+
+#+BEGIN_SRC bash :results verbatim
+for filename in *.csv 
+do
+echo "Processing ${filename}."
+done
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Processing countries.csv.
+Processing datatypes.csv.
+Processing immigration.csv.
+Processing immigration-long.csv.
+Processing investments2.csv.
+Processing iris.csv.
+Processing irismeta.csv.
+Processing Iris-setosa.csv.
+Processing Iris-versicolor.csv.
+Processing Iris-virginica.csv.
+Processing names-comma.csv.
+Processing names.csv.
+Processing tips.csv.
+#+end_example
+
+Just as with brace expansion with numbers, the *.csv is first expanded into a list before it is processed by the for loop. 
+
+A more elaborate alternative to find files is find, which 
+
+- allows for elaborate searching on properties sudh as size, access time, and permissions
+- handles dashes
+- handles special characters such as spaces and newlines 
+
+#+BEGIN_SRC bash :results verbatim
+find data -name '*.csv' -exec echo "Processing {}" \;
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Processing data/ch03/data/imdb250.csv
+Processing data/ch07/data/datatypes.csv
+Processing data/ch07/data/investments2.csv
+Processing data/ch09/data/wine-both-clean.csv
+Processing data/ch09/data/wine-train.csv
+Processing data/ch09/data/wine-both-cluster-cobweb.csv
+Processing data/ch09/data/wine-test.csv
+Processing data/ch09/data/predictions.csv
+Processing data/ch09/data/wine-header.csv
+Processing data/ch09/data/wine-white.csv
+Processing data/ch09/data/wine-white-clean.csv
+Processing data/ch09/data/wine-both-cluster-em.csv
+Processing data/ch09/data/wine-both-cluster-simplekmeans.csv
+Processing data/ch09/data/wine-red.csv
+Processing data/ch09/data/wine-both-scaled.csv
+Processing data/ch09/data/train/features.csv
+Processing data/ch09/data/wine-both-xy.csv
+Processing data/ch09/data/output/predictions.csv
+Processing data/ch09/data/wine-red-clean.csv
+Processing data/ch09/data/wine-balanced.csv
+Processing data/ch05/data/names-comma.csv
+Processing data/ch05/data/irismeta.csv
+Processing data/ch05/data/names.csv
+Processing data/ch05/data/Iris-virginica.csv
+Processing data/ch05/data/Iris-setosa.csv
+Processing data/ch05/data/Iris-versicolor.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/tips.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/iris.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/datatypes.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/investments2.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-clean.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-train.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-cluster-cobweb.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-test.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/predictions.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-header.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-white.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-white-clean.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-cluster-em.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-cluster-simplekmeans.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-red.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-scaled.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/train/features.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-xy.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/output/predictions.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-red-clean.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-balanced.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/.data/tips.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/.data/iris.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/names-comma.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/irismeta.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/names.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/Iris-virginica.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/Iris-setosa.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/tips.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/iris.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/Iris-versicolor.csv
+#+end_example
+
+Here is the same bu then using parallel 
+
+#+BEGIN_SRC bash :results verbatim
+find data -name '*.csv' -print0 | parallel -0 echo "Processing {}"
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Processing data/ch03/data/imdb250.csv
+Processing data/ch07/data/datatypes.csv
+Processing data/ch07/data/investments2.csv
+Processing data/ch09/data/wine-both-clean.csv
+Processing data/ch09/data/wine-train.csv
+Processing data/ch09/data/wine-both-cluster-cobweb.csv
+Processing data/ch09/data/wine-test.csv
+Processing data/ch09/data/predictions.csv
+Processing data/ch09/data/wine-header.csv
+Processing data/ch09/data/wine-white.csv
+Processing data/ch09/data/wine-white-clean.csv
+Processing data/ch09/data/wine-both-cluster-em.csv
+Processing data/ch09/data/wine-both-cluster-simplekmeans.csv
+Processing data/ch09/data/wine-red.csv
+Processing data/ch09/data/wine-both-scaled.csv
+Processing data/ch09/data/train/features.csv
+Processing data/ch09/data/wine-both-xy.csv
+Processing data/ch09/data/output/predictions.csv
+Processing data/ch09/data/wine-red-clean.csv
+Processing data/ch09/data/wine-balanced.csv
+Processing data/ch05/data/names-comma.csv
+Processing data/ch05/data/irismeta.csv
+Processing data/ch05/data/names.csv
+Processing data/ch05/data/Iris-virginica.csv
+Processing data/ch05/data/Iris-setosa.csv
+Processing data/ch05/data/Iris-versicolor.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/tips.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/iris.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/datatypes.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch07/data/investments2.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-clean.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-train.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-cluster-cobweb.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-test.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/predictions.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-header.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-white.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-white-clean.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-cluster-em.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-cluster-simplekmeans.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-red.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-scaled.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/train/features.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-both-xy.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/output/predictions.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-red-clean.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch09/data/wine-balanced.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/.data/tips.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/.data/iris.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/names-comma.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/irismeta.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/names.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/Iris-virginica.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/Iris-setosa.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/tips.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/iris.csv
+Processing data/ch02/data-science-at-the-command-line-master/data/ch05/data/Iris-versicolor.csv
+#+end_example
+
+
+The -print0 argument allows file names that contain newlines or other types of white space to be correctly interpreted by programs that process the found output. If we are absolutely certain there are no special characters like space and newlines, we can omit -print0 and -0 options.
+
+** 8.3 | Parallel Processing 
+
+Assume that we have a very long running command
+
+#+BEGIN_SRC bash :results verbatim
+echo "Starting job $1"
+duration=$((1+RANDOM%5))
+sleep $duration
+echo "Job $1 took ${duration} seconds"
+#+END_SRC
+
+#+RESULTS:
+: Starting job 
+: Job  took 4 seconds
+
+$RANDOM is an internal bash function that returns a pseudorandom integer between 0 and 32767. This script ensures the number is between 1 and 5.
+
+Say we need to download a whole sequence of files 
+
+#+BEGIN_SRC bash :results verbatim
+cd data/ch08;
+for i in {1..4};
+do (slow.sh $i; echo Processed $i) & 
+done
+#+END_SRC
+
+#+RESULTS:
+: Processed 1
+: Processed 2
+: Processed 3
+: Processed 4
+
+Parentheses create a subshell. the ampersand ensures that it will be executed in the background. 
+
+The problem with subshells is that they are executed all at once. There is no mechanism to control the maximum number of processes.
+
+#+BEGIN_SRC bash :results verbatim
+cd data/ch08;
+while read i; do
+(slow.sh "$i"; ) & 
+done < data/emails.txt
+#+END_SRC
+
+#+RESULTS:
+
+There are two problems with this naive approach: 
+
+- There is no way to control how many processes you are running concurrently
+- logging which output belongs to which input
+
+*** 8.3.1 | GNU Parallel
+
+This tool allows us to parallelized commands and pipelines. The beauty of the tool is that they can be used as they are and don't need to be modified. 
+
+Here is an example to show how easy it is
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel "echo {}^2 | bc"
+#+END_SRC
+
+#+RESULTS:
+: 1
+: 4
+: 9
+: 16
+: 25
+
+GNU offers a lot of functionality (with over 110 arguments). 
+
+*** 8.3.2 | Specifying Input 
+
+We should be explicit about where the input item should be inserted in the command using one or more placeholders.
+
+In most cases, we probably want the input as it is. We specify the placeholder with curly braces.
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel echo {}
+#+END_SRC
+
+#+RESULTS:
+: 1
+: 2
+: 3
+: 4
+: 5
+
+When the input is a file, we can use special placeholders. For example, with {./} only the base name of the filename will be used. If the input line has multiple parts separated by a delimiter, we can add numbers to the placeholders.
+
+#+BEGIN_SRC bash :results verbatim
+cat input.csv | parallel -C, "mv {1} {2}"
+#+END_SRC
+
+#+RESULTS:
+
+It is also possible to reuse the same input item. If they input to parallel is a CSV file with a header, then we can use column names as placeholders 
+
+#+BEGIN_SRC bash :results verbatim
+cat input.csv | parallel -C, --header : "invite {name} {email}"
+#+END_SRC
+
+#+RESULTS:
+
+Sometimes we want to run the same command without changing inputs. This is also possible in parallel. We just specify the -N0 parameter and give as input as many lines as we wish to execute 
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel -N0 "echo The command line rules"
+#+END_SRC
+
+#+RESULTS:
+: The command line rules
+: The command line rules
+: The command line rules
+: The command line rules
+: The command line rules
+
+#+BEGIN_SRC bash :results verbatim
+parallel --dryrun
+#+END_SRC
+
+#+RESULTS:
+
+*** 8.3.3 | Controlling the Number of Concurrent Jobs 
+
+By default, parallel runs one job per CPU core. We can control the number of jobs with the -j command. Specifying a number makes the jobs run in parallel. 
+
+- If you put a plus sign in front of the number, then parallel will run N jobs plus the number of CPU cores. 
+
+- If you put a minus sign in front then parallel will run N-M jobs, where N is the number of CPU cores.
+
+- You can also specify a percentage to the -j parameter
+
+- If you specify -j1, the commands will be run sequentially
+
+- If you specify -j0, then paralle will run as many jobs in parallel as possible. This can be compared to our loop with subshells.
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel -j0 "echo Hi {}"
+#+END_SRC
+
+#+RESULTS:
+: Hi 1
+: Hi 2
+: Hi 3
+: Hi 4
+: Hi 5
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel -j200% "echo Hi {}"
+#+END_SRC
+
+#+RESULTS:
+: Hi 1
+: Hi 2
+: Hi 3
+: Hi 4
+: Hi 5
+
+
+*** 8.3.4 | Logging and Output 
+
+To save the output of each command, we might be tempted to do the following:
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel "echo \"Hi {}\" > hi-{}.txt"
+#+END_SRC
+
+#+RESULTS:
+
+This will save the output into individual files, hi-1, hi-2, ..., h-5. 
+
+If we want to save one big file we could do the following:
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel "echo Hi {}" >> one-big-file.txt
+#+END_SRC
+
+#+RESULTS:
+
+GNI parallel offers the --results option, which stores the output of each job into a separate file, where the filename is based on the input values.
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel --results data/ch08/outdir "echo Hi {}"
+#+END_SRC
+
+#+RESULTS:
+: Hi 1
+: Hi 2
+: Hi 3
+: Hi 4
+: Hi 5
+
+#+BEGIN_SRC bash :results verbatim
+find data/ch08/outdir
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+data/ch08/outdir
+data/ch08/outdir/1
+data/ch08/outdir/1/2
+data/ch08/outdir/1/2/seq
+data/ch08/outdir/1/2/stderr
+data/ch08/outdir/1/2/stdout
+data/ch08/outdir/1/4
+data/ch08/outdir/1/4/seq
+data/ch08/outdir/1/4/stderr
+data/ch08/outdir/1/4/stdout
+data/ch08/outdir/1/1
+data/ch08/outdir/1/1/seq
+data/ch08/outdir/1/1/stderr
+data/ch08/outdir/1/1/stdout
+data/ch08/outdir/1/5
+data/ch08/outdir/1/5/seq
+data/ch08/outdir/1/5/stderr
+data/ch08/outdir/1/5/stdout
+data/ch08/outdir/1/3
+data/ch08/outdir/1/3/seq
+data/ch08/outdir/1/3/stderr
+data/ch08/outdir/1/3/stdout
+#+end_example
+
+When running multiple jobs in parallel, the order in which the jobs are run may not correspond to the order of the input. The output of the jobs is also mixed up. To keep the same order, we can specify the --keep-order or -k option
+
+Sometimes its useful to record which input generated which output. GNU Parallel allows us to tag the output with the --tag option:
+
+#+BEGIN_SRC bash :results verbatim
+seq 5 | parallel --tag "echo Hi {}"
+#+END_SRC
+
+#+RESULTS:
+: 1	Hi 1
+: 2	Hi 2
+: 3	Hi 3
+: 4	Hi 4
+: 5	Hi 5
+
+
+*** 8.3.5 | Creating Parallel Tools 
+
+We can specify parallel within other tools as well. 
+
+#+BEGIN_SRC bash :results verbatim
+cat ~/bin/pbc
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+#!/bin/bash
+# pbc: parallel bc. First column of input CSV is mapped to {1}, second to {2}, and so forth.
+#
+# Example usage: paste -d, <(seq 100) <(seq 100 -1 1) | ./pbc 'sqrt({1}*{2})'
+#
+# Dependency: GNU parallel
+#
+# Author: http://jeroenjanssens.com
+
+parallel -C, -k -j100% "echo '$1' | bc -l"
+#+end_example
+
+
+#+BEGIN_SRC bash :results verbatim
+seq 100 | pbc '{1}^2' | tail
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+8281
+8464
+8649
+8836
+9025
+9216
+9409
+9604
+9801
+10000
+#+end_example
+
+** 8.4 | Distributed Processing 
+
+GNU Parallel can also leverage the power of remote machines. The rest of this chapter looks at this usecase with AWS. 
+
+Since I don't want to spin up an EC2 instance for this, it is left on the backburner for now. 
+
+** 8.5 | Discussion
+
+Some features of GNU Parallel not covered: 
+
+- Different ways of specifying input
+- Keep a log of all jobs
+- Only start new jobs when the machine is under a certain load
+- Timeout, resume, and retry jobs
+
+
+** 8.6 | Further Reading 
+
+- Tange, O. 2011. “GNU Parallel - the Command-Line Power Tool.”;Login: The USENIX Magazine 36 (1). Frederiksberg, Denmark:42–47. http://www.gnu.org/s/parallel.
+
+- Tange, Ole. 2014. “GNU Parallel.” http://www.gnu.org/software/parallel.
+
+- Services, Amazon Web. 2014. “AWS Command Line Interface.” http://aws.amazon.com/cli.
