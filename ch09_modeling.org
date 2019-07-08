@@ -1,0 +1,444 @@
+* Modeling Data 
+
+In this chapter we will consider four types of algorithms to model data:
+
+- Dimensionality Reduction
+- Clustering
+- Regression
+- Classification 
+
+** 9.1 | Overview 
+
+In this chapter, we will learn to 
+
+- Reduce the dimensionality of a data set
+- Identify groups of data points with three clustering algorithms
+- Predict the quality of white wine using regression
+- Classify wine as red or white via a prediction API
+
+** 9.2 | More Wine Please! 
+
+The data we will be using is on wine tastings, specifically red and white portugese Vinho Verde wine. 
+
+Each datapoint represents a wine, with 11 properties: 
+
+- fixed acidity
+- volatile acidity
+- citric acid
+- residual sugar
+- chlorides
+- free sulfur dioxide
+- total sulfur dioxide
+- density
+- pH
+- sulphates
+- alcohol
+- quality score (1-10)
+
+#+BEGIN_SRC bash :results verbatim
+parallel "curl -sL http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-{}.csv > wine-{}.csv" ::: red white
+#+END_SRC
+
+#+RESULTS:
+
+The triple colon is a way to pass data to parallel. 
+
+Let's look at the data and count the number of rows 
+
+#+BEGIN_SRC bash :results verbatim
+head -n 5 wine-{red,white}.csv | fold
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+==> wine-red.csv <==
+"fixed acidity";"volatile acidity";"citric acid";"residual sugar";"chlorides";"f
+ree sulfur dioxide";"total sulfur dioxide";"density";"pH";"sulphates";"alcohol";
+"quality"
+7.4;0.7;0;1.9;0.076;11;34;0.9978;3.51;0.56;9.4;5
+7.8;0.88;0;2.6;0.098;25;67;0.9968;3.2;0.68;9.8;5
+7.8;0.76;0.04;2.3;0.092;15;54;0.997;3.26;0.65;9.8;5
+11.2;0.28;0.56;1.9;0.075;17;60;0.998;3.16;0.58;9.8;6
+
+==> wine-white.csv <==
+"fixed acidity";"volatile acidity";"citric acid";"residual sugar";"chlorides";"f
+ree sulfur dioxide";"total sulfur dioxide";"density";"pH";"sulphates";"alcohol";
+"quality"
+7;0.27;0.36;20.7;0.045;45;170;1.001;3;0.45;8.8;6
+6.3;0.3;0.34;1.6;0.049;14;132;0.994;3.3;0.49;9.5;6
+8.1;0.28;0.4;6.9;0.05;30;97;0.9951;3.26;0.44;10.1;6
+7.2;0.23;0.32;8.5;0.058;47;186;0.9956;3.19;0.4;9.9;6
+#+end_example
+
+#+BEGIN_SRC bash :results verbatim
+wc -l wine-{red,white}.csv
+#+END_SRC
+
+#+RESULTS:
+:   1600 wine-red.csv
+:   4899 wine-white.csv
+:   6499 total
+
+This data already seems pretty clean, but we can still scrub it a bit. We can
+
+- convert the header to lowercase
+- convert the semicolons to commas
+- convert spaces to underscores
+- remove unnecessary quotes
+
+We can use tr for this 
+
+#+BEGIN_SRC bash :results verbatim
+for T in red white;
+do < wine-$T.csv tr '[A-Z]; ' '[a-z],_' | tr -d \" > wine-${T}-clean.csv
+done
+#+END_SRC
+
+#+RESULTS:
+
+Let's also create a dataset by combining these two datasets. We can use csvstack to add a column called type which will be red for rows of the first file and white for rows of the second file.
+
+#+BEGIN_SRC bash :results verbatim
+HEADER="$(head -n 1 wine-red-clean.csv),type"
+csvstack -g red,white -n type wine-{red,white}-clean.csv | 
+csvcut -c $HEADER > wine-both-clean.csv
+#+END_SRC
+
+#+RESULTS:
+
+Let's check if there are any missing values in this data set: 
+
+#+BEGIN_SRC bash :results verbatim
+csvstat wine-both-clean.csv --nulls
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+  1. fixed_acidity: False
+  2. volatile_acidity: False
+  3. citric_acid: False
+  4. residual_sugar: False
+  5. chlorides: False
+  6. free_sulfur_dioxide: False
+  7. total_sulfur_dioxide: False
+  8. density: False
+  9. ph: False
+ 10. sulphates: False
+ 11. alcohol: False
+ 12. quality: False
+ 13. type: False
+#+end_example
+
+There are no missing values!
+
+Let's see how the distribution of quality looks like for  both red and white wines 
+
+#+BEGIN_SRC bash :results verbatim
+cat wine-both-clean.csv | Rio -ge 'g+geom_density(aes(quality, fill = type), adjust = 3, alpha = 0.5)' | display
+#+END_SRC
+
+#+RESULTS:
+
+We see that white wines tend to score a little higher than red wines. 
+
+Is there a correlation between alcohol and quantity? 
+
+#+BEGIN_SRC bash :results verbatim
+cat wine-both-clean.csv | Rio -ge 'ggplot(df, aes(x = alcohol, y = quality, color = type)) + geom_point(position = "jitter", alpha = 0.2) + geom_smooth(method = "lm")' | display
+#+END_SRC
+
+#+RESULTS:
+
+** 9.3 | Dimensionality Reduction with Tapkee 
+
+In this section we will look at PCA and t-SNE for dimensionality reduction. The library we will be using is Tapkee, a C++ template library for dimensionality reduction. It includes implementations of many dimensionality reduction algorithms, including 
+
+- locally linear embedding
+- isomap
+- multidimensional scaling
+- PCA
+- t-SNE
+
+*** 9.3.3 | Linear and Nonlinear Mappings 
+
+First we will scale the features using standardization such that each feature is equally important.
+
+To scale, we use a combination of cols and Rio:
+
+#+BEGIN_SRC bash :results verbatim
+< wine-both-clean.csv cols -C type Rio -f scale > wine-both-scaled.csv
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cat wine-both-scaled.csv | csvlook | head -n 10
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+| fixed_acidity | volatile_acidity | citric_acid | residual_sugar | chlorides | free_sulfur_dioxide | total_sulfur_dioxide | density |      ph | sulphates | alcohol | quality | type |
+| ------------- | ---------------- | ----------- | -------------- | --------- | ------------------- | -------------------- | ------- | ------- | --------- | ------- | ------- | ---- |
+|        0.142… |           2.189… |     -2.193… |        -0.745… |    0.570… |             -1.100… |              -1.446… |  1.035… |  1.813… |    0.193… | -0.915… | -0.937… | red  |
+|        0.451… |           3.282… |     -2.193… |        -0.598… |    1.198… |             -0.311… |              -0.862… |  0.701… | -0.115… |    1.000… | -0.580… | -0.937… | red  |
+|        0.451… |           2.553… |     -1.917… |        -0.661… |    1.027… |             -0.875… |              -1.092… |  0.768… |  0.258… |    0.798… | -0.580… | -0.937… | red  |
+|        3.074… |          -0.362… |      1.661… |        -0.745… |    0.541… |             -0.762… |              -0.986… |  1.102… | -0.364… |    0.327… | -0.580… |  0.208… | red  |
+|        0.142… |           2.189… |     -2.193… |        -0.745… |    0.570… |             -1.100… |              -1.446… |  1.035… |  1.813… |    0.193… | -0.915… | -0.937… | red  |
+|        0.142… |           1.946… |     -2.193… |        -0.766… |    0.541… |             -0.987… |              -1.340… |  1.035… |  1.813… |    0.193… | -0.915… | -0.937… | red  |
+|        0.528… |           1.581… |     -1.780… |        -0.808… |    0.370… |             -0.875… |              -1.004… |  0.568… |  0.507… |   -0.479… | -0.915… | -0.937… | red  |
+|        0.065… |           1.885… |     -2.193… |        -0.892… |    0.256… |             -0.875… |              -1.676… | -0.032… |  1.067… |   -0.412… | -0.412… |  1.353… | red  |
+#+end_example
+
+Now we apply both dimensionality reduction techniques and visualize the mapping using Rio-scatter:
+
+**** PCA: 
+
+#+BEGIN_SRC bash :results verbatim
+< wine-both-scaled.csv cols -C type body tapkee --method pca | header -r x,y,type | Rio-scatter x y type | tee tapkee-wine-pca.png | display
+#+END_SRC
+
+#+RESULTS:
+
+**** t-SNE 
+
+#+BEGIN_SRC bash :results verbatim
+< wine-both-scaled.csv cols -C type body tapkee --method t-sne | header -r x,y,type | Rio-scatter x y type | tee tapkee-wine-t-sne.png | display
+#+END_SRC
+
+#+RESULTS:
+
+** 9.4 | Clustering with Weka 
+
+Too complex, too little to be gained from this over using an Rscipt
+
+** 9.5 | Regression with Scikit-Learn Laboratory
+
+SKLL expects that the train and test data have the same filenames, located in separate directories. In this example, we are going to use cross validation.
+
+We need to add an identifier to each row so we can identidy the datapoints later 
+
+#+BEGIN_SRC bash :results verbatim
+mkdir train;
+cat wine-white-clean.csv | nl -s, -w1 -v0 | sed '1s/0,/id,/' > train/features.csv
+#+END_SRC
+
+#+RESULTS:
+ 
+*** 9.5.2 | Running the Experiment 
+
+Create a configuration file called predict-quality.cfg 
+
+#+BEGIN_SRC python3 :results verbatim :tangle predict-quality.cfg
+[General]
+experiment_name = Wine
+task = cross_validate
+
+[Input]
+train_directory = train
+featuresets = [["features.csv"]]
+learners = ["LinearRegression","GradientBoostingRegressor","RandomForestRegressor"]
+label_col = quality
+
+[Tuning]
+grid_search = false
+objective = r2
+
+[Output]
+log = output
+results = output
+predictions = output
+#+END_SRC
+
+We run the experiment using the run_experiment command line tool. This took a bit of finagling, so check out the [[https://scikit-learn-laboratory.readthedocs.io/en/latest/run_experiment.html#creating-configuration-files][Documentation]] and the [[https://github.com/EducationalTestingService/skll/tree/master/examples][Example Config Files]].
+
+#+BEGIN_SRC bash :results verbatim
+run_experiment -l predit-quality.cfg
+#+END_SRC
+
+#+RESULTS:
+
+Once all the algorithms are done, the results can be found in the output directory. 
+
+#+BEGIN_SRC bash :results verbatim
+cd output 
+ls -l 
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+total 428
+-rw-r--r-- 1 michael michael    208 Jul  7 21:36 Wine_features.csv_GradientBoostingRegressor.log
+-rw-r--r-- 1 michael michael 111620 Jul  7 21:37 Wine_features.csv_GradientBoostingRegressor_predictions.tsv
+-rw-r--r-- 1 michael michael   8924 Jul  7 21:37 Wine_features.csv_GradientBoostingRegressor.results
+-rw-r--r-- 1 michael michael  17596 Jul  7 21:37 Wine_features.csv_GradientBoostingRegressor.results.json
+-rw-r--r-- 1 michael michael    208 Jul  7 21:36 Wine_features.csv_LinearRegression.log
+-rw-r--r-- 1 michael michael 111632 Jul  7 21:36 Wine_features.csv_LinearRegression_predictions.tsv
+-rw-r--r-- 1 michael michael   4846 Jul  7 21:36 Wine_features.csv_LinearRegression.results
+-rw-r--r-- 1 michael michael  13009 Jul  7 21:36 Wine_features.csv_LinearRegression.results.json
+-rw-r--r-- 1 michael michael    208 Jul  7 21:37 Wine_features.csv_RandomForestRegressor.log
+-rw-r--r-- 1 michael michael  51762 Jul  7 21:42 Wine_features.csv_RandomForestRegressor_predictions.tsv
+-rw-r--r-- 1 michael michael   7728 Jul  7 21:42 Wine_features.csv_RandomForestRegressor.results
+-rw-r--r-- 1 michael michael  15974 Jul  7 21:42 Wine_features.csv_RandomForestRegressor.results.json
+-rw-r--r-- 1 michael michael      0 Jul  7 21:36 Wine.log
+-rw-r--r-- 1 michael michael  38094 Jul  7 21:42 Wine_skll_fold_ids.csv
+-rw-r--r-- 1 michael michael  19832 Jul  7 21:42 Wine_summary.tsv
+#+end_example
+
+SKLL generates four files for each learner: one log, two with results, and one with predictions. It also generates a summary file, which contains a lot of information about each individual fold
+
+#+BEGIN_SRC bash :results verbatim
+cd output
+cat *.results | head -n 50 
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Experiment Name: Wine
+SKLL Version: 1.5.3
+Training Set: train
+Training Set Size: 4898
+Test Set: cv
+Test Set Size: n/a
+Shuffle: False
+Feature Set: ["features.csv"]
+Learner: GradientBoostingRegressor
+Task: cross_validate
+Number of Folds: 10
+Stratified Folds: True
+Feature Scaling: none
+Grid Search: False
+Scikit-learn Version: 0.20.1
+Start Timestamp: 07 Jul 2019 21:36:40.229424
+End Timestamp: 07 Jul 2019 21:37:12.150137
+Total Time: 0:00:31.920713
+
+
+Fold: 1
+Model Parameters: {"alpha": 0.9, "criterion": "friedman_mse", "init": null, "learning_rate": 0.1, "loss": "ls", "max_depth": 3, "max_features": null, "max_leaf_nodes": null, "min_impurity_decrease": 0.0, "min_impurity_split": null, "min_samples_leaf": 1, "min_samples_split": 2, "min_weight_fraction_leaf": 0.0, "n_estimators": 500, "n_iter_no_change": null, "presort": "auto", "random_state": 123456789, "subsample": 1.0, "tol": 0.0001, "validation_fraction": 0.1, "verbose": 0, "warm_start": false}
+Grid Objective Score (Train) = 0.0
+
+Accuracy = 
+Descriptive statistics:
+ Min =  3.0000 (actual),  3.5176 (predicted)
+ Max =  8.0000 (actual),  7.2061 (predicted)
+ Avg =  5.8020 (actual),  5.7109 (predicted)
+ Std =  0.8873 (actual),  0.5329 (predicted)
+Pearson =  0.562168
+Objective Function Score (Test) = 0.3039964441981454
+
+Fold: 2
+Model Parameters: {"alpha": 0.9, "criterion": "friedman_mse", "init": null, "learning_rate": 0.1, "loss": "ls", "max_depth": 3, "max_features": null, "max_leaf_nodes": null, "min_impurity_decrease": 0.0, "min_impurity_split": null, "min_samples_leaf": 1, "min_samples_split": 2, "min_weight_fraction_leaf": 0.0, "n_estimators": 500, "n_iter_no_change": null, "presort": "auto", "random_state": 123456789, "subsample": 1.0, "tol": 0.0001, "validation_fraction": 0.1, "verbose": 0, "warm_start": false}
+Grid Objective Score (Train) = 0.0
+
+Accuracy = 
+Descriptive statistics:
+ Min =  3.0000 (actual),  3.9733 (predicted)
+ Max =  9.0000 (actual),  7.4409 (predicted)
+ Avg =  5.9327 (actual),  5.7262 (predicted)
+ Std =  0.9739 (actual),  0.5445 (predicted)
+Pearson =  0.572278
+Objective Function Score (Test) = 0.2823893402605434
+
+Fold: 3
+Model Parameters: {"alpha": 0.9, "criterion": "friedman_mse", "init": null, "learning_rate": 0.1, "loss": "ls", "max_depth": 3, "max_features": null, "max_leaf_nodes": null, "min_impurity_decrease": 0.0, "min_impurity_split": null, "min_samples_leaf": 1, "min_samples_split": 2, "min_weight_fraction_leaf": 0.0, "n_estimators": 500, "n_iter_no_change": null, "presort": "auto", "random_state": 123456789, "subsample": 1.0, "tol": 0.0001, "validation_fraction": 0.1, "verbose": 0, "warm_start": false}
+Grid Objective Score (Train) = 0.0
+
+#+end_example
+
+We can extract the relevant metrics with the following SQL query: 
+
+#+BEGIN_SRC bash :results verbatim raw
+cd output
+cat Wine_summary.tsv | csvsql --query "SELECT learner_name, pearson FROM stdin WHERE fold = 'average' ORDER BY pearson DESC" | csvlook
+#+END_SRC
+
+#+RESULTS:
+| learner_name              | pearson |
+| ------------------------- | ------- |
+| RandomForestRegressor     | 0.590…  |
+| GradientBoostingRegressor | 0.569…  |
+| LinearRegression          | 0.513…  |
+
+The relevant column is pearson, which indicates the Pearson's ranking correlation. This value in [-1,1] indicates the correlation between the true ranking and the predicted ranking. 
+
+We can print the predictions back to the dataset:
+
+#+BEGIN_SRC bash :results verbatim
+parallel "csvjoin -c id train/features.csv <(< output/Wine_features.csv_{}_predictions.tsv | tr '\t' ',') | csvcut -c id,quality,prediction > {}" ::: RandomForestRegressor GradientBoostingRegressor LinearRegression
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+csvstack *Regres* -n learner --filenames > predictions.csv
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cd output
+ parallel "csvjoin -c id train/features.csv <(< output/Wine_features.csv_{}_predictions.tsv | tr '\t' ',') | csvcut -c id,prediction > {}" ::: RandomForestRegressor GradientBoostingRegressor LinearRegression;
+csvstack *Regres* -n learner --filenames > predictions.csv
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC bash :results verbatim
+cd output
+cat predictions.csv | head -n 50
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+learner
+Wine_features.csv_GradientBoostingRegressor.log,2019-07-07 21:36:40,229 - INFO - Cross-validating (10 folds) on train, feature set ['features.csv'] ...
+Wine_features.csv_GradientBoostingRegressor.log,2019-07-07 21:36:40,508 - INFO - Cross-validating
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,1	5.318636964281461
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,2	5.286027031601545
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,3	5.815843276859535
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,4	5.478910291048386
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,5	5.478910291048386
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,6	5.815843276859535
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,7	5.283723903249008
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,8	5.318636964281461
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,9	5.286027031601545
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,10	5.948796012189589
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,11	5.615080697320682
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,12	5.5172473599627505
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,13	5.770442583778424
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,14	6.744072442671788
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,15	5.071404225586578
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,16	6.179593389668461
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,17	4.88577040757055
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,18	5.451715260984194
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,19	5.8651595321415915
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,20	5.21549045180232
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,21	5.451715260984194
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,22	5.96488405455084
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,23	6.3100020339950165
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,24	4.508191412962231
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,25	5.155491884791817
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,26	5.949623333852473
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,27	5.932389854913247
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,28	5.879638259791843
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,29	5.768979928925522
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,30	6.839372862031341
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,31	5.676836685684258
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,32	5.239081025764253
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,33	5.8519889814224
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,34	6.194840260400718
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,35	5.473689131570324
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,36	6.28742824653492
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,37	5.09931518845492
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,38	5.918794566922254
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,39	5.001813498045893
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,40	5.001813498045893
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,41	5.462644578514627
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,42	5.311363169731958
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,43	5.310345905631081
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,44	5.694392294719031
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,45	5.506553580245759
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,46	6.011614946289725
+Wine_features.csv_GradientBoostingRegressor_predictions.tsv,47	5.377949938635096
+#+end_example
+
